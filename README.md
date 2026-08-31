@@ -27,15 +27,15 @@ overseas-app/
 - Docker (for containerized setup)
 
 ### Backend
-\```bash
+```bash
 cd backend
 npm install
 npm run dev
-\```
+```
 
 ### Frontend
-\```bash
+```bash
 cd frontend/overseas-frontend
 npm install
 ng serve
-\```
+```
