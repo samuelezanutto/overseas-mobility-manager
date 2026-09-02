@@ -189,4 +189,32 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
     }
 });
 
+//PATCH /applications/:id/pre-departure
+router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Response) => {
+    //verify that the user is a staff member
+    if (req.user!.role !== 'staff') {
+        return res.status(403).json({ message: 'Only staff can update pre-departure status' });
+    }
+
+    //find the application
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        //verify at least one learning agreement is approved
+        const approvedLA = application.learningAgreements.some(la => la.status === 'approved');
+        if (!approvedLA) {
+            return res.status(400).json({ message: 'At least one learning agreement must be approved before updating pre-departure status' });
+        }
+        //update status = 'pre_departure_completed'
+        application.status = 'pre_departure_completed';
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating pre-departure status' });
+    }
+});
+
 export default router;
