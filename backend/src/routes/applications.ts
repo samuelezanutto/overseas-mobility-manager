@@ -369,4 +369,43 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
     }
 });
 
+//POST /applications/:id/transcript
+router.post('/:id/transcript',
+    authMiddleware,
+    upload.single('file'),
+    async (req: Request, res: Response) => {
+
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can upload transcripts' });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.studentId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        application.transcripts.push({
+            filePath: req.file.path,
+            uploadedAt: new Date()
+            // nessun status — ITranscript non ce l'ha
+        });
+
+        application.status = 'waiting_score_approval';  // valore corretto dell'enum
+
+        await application.save();
+        res.status(201).json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error uploading transcript' });
+    }
+});
+
 export default router;
