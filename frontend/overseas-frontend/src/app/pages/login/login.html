@@ -1,8 +1,8 @@
 <div style="max-width: 400px; margin: 100px auto; padding: 2rem;">
     <h2>Overseas - Login</h2>
 
-    @if (errorMessage) {
-        <div style="color: red; margin-bottom: 1rem;">{{ errorMessage }}</div>
+    @if (errorMessage()) {
+        <div style="color: red; margin-bottom: 1rem;">{{ errorMessage() }}</div>
     }
 
     <form (ngSubmit)="onSubmit()">

@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApplicationService } from '../../core/services/application.service';
@@ -6,13 +6,14 @@ import { ApplicationService } from '../../core/services/application.service';
 @Component({
     selector: 'app-dashboard',
     standalone: true,
+    imports: [],
     templateUrl: './dashboard.html'
 })
 export class Dashboard implements OnInit {
-    user: any = null;
-    applications: any[] = [];
-    loading = true;
-    errorMessage = '';
+    user = signal<any>(null);
+    applications = signal<any[]>([]);
+    loading = signal(true);
+    errorMessage = signal('');
 
     constructor(
         private authService: AuthService,
@@ -21,25 +22,22 @@ export class Dashboard implements OnInit {
     ) {}
 
     ngOnInit() {
-        this.user = this.authService.getUser();
+        this.user.set(this.authService.getUser());
         this.loadApplications();
     }
 
     loadApplications() {
-      console.log('Chiamo GET /applications...');
-      this.applicationService.getApplications().subscribe({
-          next: (apps) => {
-              console.log('Risposta ricevuta:', apps);
-              this.applications = apps;
-              this.loading = false;
-          },
-          error: (err) => {
-              console.log('Errore:', err);
-              this.errorMessage = 'Errore nel caricamento delle applicazioni';
-              this.loading = false;
-          }
-      });
-}
+        this.applicationService.getApplications().subscribe({
+            next: (apps) => {
+                this.applications.set(apps);
+                this.loading.set(false);
+            },
+            error: () => {
+                this.errorMessage.set('Errore nel caricamento delle applicazioni');
+                this.loading.set(false);
+            }
+        });
+    }
 
     goToDetail(id: string) {
         this.router.navigate(['/applications', id]);

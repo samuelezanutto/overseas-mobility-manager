@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
@@ -12,7 +12,7 @@ import { AuthService } from '../../core/services/auth.service';
 export class Login {
     email = '';
     password = '';
-    errorMessage = '';
+    errorMessage = signal('');
 
     constructor(
         private authService: AuthService,
@@ -21,12 +21,8 @@ export class Login {
 
     onSubmit() {
         this.authService.login(this.email, this.password).subscribe({
-            next: () => {
-                this.router.navigate(['/dashboard']);
-            },
-            error: () => {
-                this.errorMessage = 'Email o password errati';
-            }
+            next: () => this.router.navigate(['/dashboard']),
+            error: () => this.errorMessage.set('Email o password errati')
         });
     }
 }
