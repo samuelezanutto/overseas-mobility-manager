@@ -69,7 +69,17 @@ router.post('/login', async (req: Request, res: Response) => {
             { expiresIn: '7d' }
         );
 
-        res.json({ token });
+        res.json({ 
+            token, 
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                matriculationNumber: user.matriculationNumber
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error logging in' });
     }
