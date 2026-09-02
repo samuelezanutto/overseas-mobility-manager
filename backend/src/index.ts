@@ -3,13 +3,13 @@ import { connectDB } from './db';
 import authRoutes from './routes/auth';
 import institutionRoutes from './routes/institutions';
 import { seedInstitutions } from './seeds';
-import MobilityApplicationRoutes from './routes/applications';
+import mobilityApplicationRoutes from './routes/applications';
 
 const app = express();
 const PORT = 3000;
 
 app.use(express.json());
-app.use('/applications', MobilityApplicationRoutes);
+app.use('/applications', mobilityApplicationRoutes);
 app.use('/institutions', institutionRoutes);
 
 app.use('/auth', authRoutes);
