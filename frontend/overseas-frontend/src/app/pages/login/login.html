@@ -1,0 +1,21 @@
+<div style="max-width: 400px; margin: 100px auto; padding: 2rem;">
+    <h2>Overseas - Login</h2>
+
+    @if (errorMessage) {
+        <div style="color: red; margin-bottom: 1rem;">{{ errorMessage }}</div>
+    }
+
+    <form (ngSubmit)="onSubmit()">
+        <div>
+            <label>Email</label><br>
+            <input type="email" [(ngModel)]="email" name="email" required />
+        </div>
+        <br>
+        <div>
+            <label>Password</label><br>
+            <input type="password" [(ngModel)]="password" name="password" required />
+        </div>
+        <br>
+        <button type="submit">Accedi</button>
+    </form>
+</div>
