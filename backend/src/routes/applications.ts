@@ -447,4 +447,32 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
     }
 });
 
+//PATCH /applications/:id/close
+router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'staff') {
+        return res.status(403).json({ message: 'Only staff can close applications' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        const allActiveMappingsApproved = application.mappings
+            .filter(m => m.isActive)
+            .every(m => m.result?.approvalStatus === 'approved');
+
+        if (application.transcripts.length === 0 || !allActiveMappingsApproved) {
+            return res.status(400).json({ message: 'Cannot close: missing transcript or not all active mappings are approved' });
+        }
+
+        application.status = 'closed';
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error closing application' });
+    }
+});
+
 export default router;
