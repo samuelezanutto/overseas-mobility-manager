@@ -311,4 +311,62 @@ router.post('/:id/modifications',
     }
 });
 
+//PATCH /applications/:id/modifications/:modificationId/evaluate
+router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'lecturer') {
+        return res.status(403).json({ message: 'Only lecturers can evaluate modifications' });
+    }
+
+    const { decision, reason } = req.body;
+    if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ message: 'Decision must be either "approved" or "rejected"' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.lecturerId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const modification = application.modifications.find(
+            mod => String(mod._id) === req.params.modificationId
+        );
+        if (!modification) {
+            return res.status(404).json({ message: 'Modification not found' });
+        }
+
+        modification.status = decision;
+        modification.decisionDate = new Date();
+        if (reason) {
+            modification.reason = reason;
+        }
+
+        if (decision === 'approved') {
+            application.mappings.forEach(m => { m.isActive = false; });
+            
+            modification.proposedMappings.forEach(pm => {
+                application.mappings.push({
+                    foreignCode: pm.foreignCode,
+                    foreignName: pm.foreignName,
+                    foreignCredits: pm.foreignCredits,
+                    cfCode: pm.cfCode,
+                    cfName: pm.cfName,
+                    cfCredits: pm.cfCredits,
+                    isActive: true
+                });
+            });
+        }
+
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        console.error('Error evaluating modification:', error);
+        res.status(500).json({ message: 'Error evaluating modification' });
+    }
+});
+
 export default router;
