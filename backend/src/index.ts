@@ -2,7 +2,7 @@ import express from 'express';
 import { connectDB } from './db';
 import authRoutes from './routes/auth';
 import institutionRoutes from './routes/institutions';
-import { seedInstitutions } from './seeds';
+import { seedInstitutions, seedUsers } from './seeds';
 import mobilityApplicationRoutes from './routes/applications';
 
 const app = express();
@@ -20,6 +20,7 @@ app.get('/', (req, res) => {
 
 connectDB().then(async () => {
     await seedInstitutions();
+    await seedUsers();
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
