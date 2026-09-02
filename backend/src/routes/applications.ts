@@ -208,12 +208,45 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
         if (!approvedLA) {
             return res.status(400).json({ message: 'At least one learning agreement must be approved before updating pre-departure status' });
         }
+        
         //update status = 'pre_departure_completed'
         application.status = 'pre_departure_completed';
         await application.save();
         res.json(application);
     } catch (error) {
         res.status(500).json({ message: 'Error updating pre-departure status' });
+    }
+});
+
+//PATCH /applications/:id/dates
+router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can update dates' });
+    }
+
+    const { arrivalDate, departureDate } = req.body;
+    if (!arrivalDate || !departureDate) {
+        return res.status(400).json({ message: 'Both arrivalDate and departureDate are required' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.studentId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        application.arrivalDate = new Date(arrivalDate);
+        application.departureDate = new Date(departureDate);
+        application.status = 'mobility_in_progress';  // ← prima del save
+
+        await application.save();
+        res.json(application);                         // ← ultima cosa
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating dates' });
     }
 });
 
