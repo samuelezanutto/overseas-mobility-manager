@@ -396,15 +396,54 @@ router.post('/:id/transcript',
         application.transcripts.push({
             filePath: req.file.path,
             uploadedAt: new Date()
-            // nessun status — ITranscript non ce l'ha
         });
 
-        application.status = 'waiting_score_approval';  // valore corretto dell'enum
+        application.status = 'waiting_score_approval';  
 
         await application.save();
         res.status(201).json(application);
     } catch (error) {
         res.status(500).json({ message: 'Error uploading transcript' });
+    }
+});
+
+//PATCH /applications/:id/mappings/:mappingId/result
+router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'lecturer') {
+        return res.status(403).json({ message: 'Access denied' });
+    }
+
+    const { score, examDate } = req.body;    // ← i campi corretti
+    if (!score || !examDate) {
+        return res.status(400).json({ message: 'score and examDate are required' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.lecturerId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const mapping = application.mappings.find(m => String(m._id) === req.params.mappingId);
+        if (!mapping) {
+            return res.status(404).json({ message: 'Mapping not found' });
+        }
+
+        // result è un oggetto IExamResult, non una stringa
+        mapping.result = {
+            score,
+            examDate: new Date(examDate),
+            approvalStatus: 'approved'
+        };
+
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error updating mapping result' });
     }
 });
 
