@@ -1,10 +1,12 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { MobilityApplication } from '../models/MobilityApplication';
+import multer from 'multer';
+import path from 'path';
 
 const router = Router();
 
-// POST /applications - studente crea una domanda
+// POST /applications - student creates an application
 router.post('/', authMiddleware, async (req: Request, res: Response) => {
     const { institutionId, lecturerId, academicYear, mobilityPeriod } = req.body;
 
@@ -14,12 +16,12 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
 
     try {
         const application = new MobilityApplication({
-            studentId: req.user!.id,    // viene dal token, non dal body
+            studentId: req.user!.id,    
             institutionId,
             lecturerId,
             academicYear,
             mobilityPeriod,
-            status: 'created'           // status iniziale
+            status: 'created'           // initial status
         });
         await application.save();
         res.status(201).json(application);
@@ -28,20 +30,20 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// GET /applications - lista filtrata per ruolo
+// GET /applications - filtered list of applications based on user role
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
     try {
         let applications;
         const { role, id } = req.user!;
 
         if (role === 'student') {
-            // studente vede solo le sue
+            // student see only their applications
             applications = await MobilityApplication.find({ studentId: id });
         } else if (role === 'lecturer') {
-            // referente vede solo quelle in cui è assegnato
+            // lecturer see only applications they are assigned to
             applications = await MobilityApplication.find({ lecturerId: id });
         } else {
-            // staff vede tutto
+            // staff see all applications
             applications = await MobilityApplication.find();
         }
 
@@ -51,7 +53,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// GET /applications/:id - dettaglio singola domanda
+// GET /applications/:id - single application detail
 router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     try {
         const application = await MobilityApplication.findById(req.params.id);
@@ -64,9 +66,9 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// POST /applications/:id/mappings  → aggiunge uno o più exam mapping alla domanda
+// POST /applications/:id/mappings  → add mappings to an application (only for students)
 router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response) => {
-    // solo gli studenti possono aggiungere mapping
+    // only students can add mappings
     if (req.user!.role !== 'student') {
         return res.status(403).json({ message: 'Only students can add mappings' });
     }
@@ -82,7 +84,7 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // verifica che la domanda appartenga allo studente loggato
+        // check if the student owns this application
         if (application.studentId.toString() !== req.user!.id) {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -95,5 +97,56 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
         res.status(500).json({ message: 'Error adding mappings' });
     }
 });
+
+// POST /applications/:id/learning-agreement
+const storage = multer.diskStorage({
+    destination: 'uploads/',       // dove salva i file
+    filename: (req, file, cb) => {
+        // nome univoco: timestamp + nome originale
+        const uniqueName = `${Date.now()}-${file.originalname}`;
+        cb(null, uniqueName);
+    }
+});
+
+const upload = multer({ storage });
+
+router.post('/:id/learning-agreement', 
+    authMiddleware, 
+    upload.single('file'),         
+    async (req: Request, res: Response) => {
+
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can upload learning agreements' });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.studentId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        application.learningAgreements.push({
+            filePath: req.file.path,
+            uploadedAt: new Date(),
+            status: 'pending'           // ← mancava
+        });
+
+        application.status = 'awaiting_la_approval';  // ← mancava
+
+        await application.save();
+        res.status(201).json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error uploading learning agreement' });
+    }
+});
+
 
 export default router;
