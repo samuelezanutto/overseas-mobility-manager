@@ -208,7 +208,7 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
         if (!approvedLA) {
             return res.status(400).json({ message: 'At least one learning agreement must be approved before updating pre-departure status' });
         }
-        
+
         //update status = 'pre_departure_completed'
         application.status = 'pre_departure_completed';
         await application.save();
@@ -247,6 +247,67 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
         res.json(application);                         // ← ultima cosa
     } catch (error) {
         res.status(500).json({ message: 'Error updating dates' });
+    }
+});
+
+//POST /applications/:id/modifications
+router.post('/:id/modifications',
+    authMiddleware,
+    upload.single('file'),         
+    async (req: Request, res: Response) => {
+
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can request modifications' });
+    }
+
+    if (!req.file) {
+        return res.status(400).json({ message: 'A new learning agreement file is required' });
+    }
+
+    const { description, proposedMappings } = req.body;
+    if (!description) {
+        return res.status(400).json({ message: 'Description is required' });
+    }
+
+    let parsedMappings;
+    try {
+        parsedMappings = typeof proposedMappings === 'string' 
+            ? JSON.parse(proposedMappings) 
+            : proposedMappings;
+    } catch {
+        return res.status(400).json({ message: 'Invalid proposedMappings format' });
+    }
+
+    if (!Array.isArray(parsedMappings) || parsedMappings.length === 0) {
+        return res.status(400).json({ message: 'proposedMappings must be a non-empty array' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.studentId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        application.learningAgreements.push({
+            filePath: req.file.path,
+            uploadedAt: new Date(),
+            status: 'pending'
+        });
+
+        application.modifications.push({
+            description,
+            proposedMappings: parsedMappings,
+            status: 'pending'
+        });
+
+        await application.save();
+        res.status(201).json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error requesting modification' });
     }
 });
 
