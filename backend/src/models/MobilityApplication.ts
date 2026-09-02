@@ -18,23 +18,25 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 // ─── Interfacce subdocumenti ──────────────────────────────────────────────────
 
 export interface IExamResult {
-    score: string;          // stringa perché può essere "30L"
+    score: string;          
     examDate: Date;
     approvalStatus: ApprovalStatus;
 }
 
 export interface IExamMapping {
+    _id?: Types.ObjectId;
     foreignCode: string;
-    foreignName: string;    // mancava
+    foreignName: string;    
     foreignCredits: number;
     cfCode: string;
-    cfName: string;         // era cdName — typo
+    cfName: string;         
     cfCredits: number;
     isActive: boolean;
-    result?: IExamResult;   // embedded, opzionale
+    result?: IExamResult;   
 }
 
 export interface ILearningAgreement {
+    _id?: Types.ObjectId;  
     filePath: string;
     uploadedAt: Date;
     status: ApprovalStatus;
@@ -48,11 +50,12 @@ export interface ITranscript {
 }
 
 export interface IModification {
+    _id?: Types.ObjectId;
     description: string;
     status: ApprovalStatus;
     decisionDate?: Date;
     reason?: string;
-    proposedMappings: IExamMapping[];   // i mapping proposti vivono QUI
+    proposedMappings: IExamMapping[];   
 }
 
 export interface IMobilityApplication {
@@ -90,7 +93,7 @@ const examMappingSchema = new Schema<IExamMapping>({
     cfName: { type: String, required: true },
     cfCredits: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
-    result: { type: examResultSchema }      // embedded dentro ExamMapping
+    result: { type: examResultSchema }      
 });
 
 const learningAgreementSchema = new Schema<ILearningAgreement>({
@@ -119,10 +122,10 @@ const modificationSchema = new Schema<IModification>({
     },
     decisionDate: { type: Date },
     reason: { type: String },
-    proposedMappings: [examMappingSchema]   // i mapping proposti sono embedded qui
+    proposedMappings: [examMappingSchema]  
 });
 
-// ─── Schema principale ────────────────────────────────────────────────────────
+// ─── Main Schema ────────────────────────────────────────────────────────
 
 const mobilityApplicationSchema = new Schema<IMobilityApplication>({
     studentId: { type: Schema.Types.ObjectId, ref: 'User', required: true },

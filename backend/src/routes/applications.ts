@@ -148,5 +148,45 @@ router.post('/:id/learning-agreement',
     }
 });
 
+//PATCH /applications/:id/learning-agreement/:agreementId/evaluate
+router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'lecturer') {
+        return res.status(403).json({ message: 'Only lecturers can evaluate learning agreements' });
+    }
+    
+    const { decision, reason } = req.body;
+    if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ message: 'Decision must be either "approved" or "rejected"' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.lecturerId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const learningAgreement = application.learningAgreements.find(
+            (la) => String(la._id) === req.params.agreementId
+        );
+        if (!learningAgreement) {
+            return res.status(404).json({ message: 'Learning agreement not found' });
+        }
+
+        learningAgreement.status = decision;
+        learningAgreement.decisionDate = new Date();  
+        if (reason) {
+            learningAgreement.reason = reason;
+        }
+
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        res.status(500).json({ message: 'Error evaluating learning agreement' });
+    }
+});
 
 export default router;
