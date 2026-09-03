@@ -2,12 +2,13 @@
 
   <button (click)="goBack()">&larr; Torna alla dashboard</button>
 
-  @if (loading()) {
-    <p>Caricamento...</p>
-  }
+  @if (loading()) { <p>Caricamento...</p> }
 
   @if (errorMessage()) {
-    <p style="color: red;">{{ errorMessage() }}</p>
+    <p style="color: red; padding: 8px; background: #ffe6e6;">{{ errorMessage() }}</p>
+  }
+  @if (successMessage()) {
+    <p style="color: green; padding: 8px; background: #e6ffe6;">{{ successMessage() }}</p>
   }
 
   @if (!loading() && application()) {
@@ -25,20 +26,22 @@
       }
     </table>
 
+    <!-- ESAMI -->
     <h3>Esami (mapping attivi)</h3>
     @if (activeMappings().length === 0) {
       <p>Nessun esame inserito.</p>
     } @else {
-      <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
         <thead>
           <tr style="background: #f0f0f0;">
-            <th style="padding: 8px; text-align: left;">Codice estero</th>
+            <th style="padding: 8px; text-align: left;">Cod. estero</th>
             <th style="padding: 8px; text-align: left;">Corso estero</th>
             <th style="padding: 8px; text-align: left;">CFU</th>
-            <th style="padding: 8px; text-align: left;">Codice CF</th>
+            <th style="padding: 8px; text-align: left;">Cod. CF</th>
             <th style="padding: 8px; text-align: left;">Corso CF</th>
             <th style="padding: 8px; text-align: left;">CFU</th>
             <th style="padding: 8px; text-align: left;">Voto</th>
+            @if (isLecturer()) { <th style="padding: 8px;">Azioni</th> }
           </tr>
         </thead>
         <tbody>
@@ -51,32 +54,82 @@
               <td style="padding: 8px;">{{ m.cfName }}</td>
               <td style="padding: 8px;">{{ m.cfCredits }}</td>
               <td style="padding: 8px;">
-                @if (m.result) {
-                  {{ m.result.score }} ({{ m.result.approvalStatus }})
-                } @else {
-                  -
-                }
+                @if (m.result) { {{ m.result.score }} ({{ m.result.approvalStatus }}) } @else { - }
               </td>
+              @if (isLecturer()) {
+                <td style="padding: 8px;">
+                  @if (!m.result) {
+                    <button (click)="setResult(m._id)">Registra voto</button>
+                  }
+                </td>
+              }
             </tr>
           }
         </tbody>
       </table>
     }
 
+    <!-- STUDENTE: aggiungi esame -->
+    @if (isStudent()) {
+      <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
+        <h4>Aggiungi esame</h4>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+          <input placeholder="Codice estero" [(ngModel)]="newMapping.foreignCode" name="fc">
+          <input placeholder="Nome corso estero" [(ngModel)]="newMapping.foreignName" name="fn">
+          <input type="number" placeholder="CFU estero" [(ngModel)]="newMapping.foreignCredits" name="fcr">
+          <input placeholder="Codice Ca' Foscari" [(ngModel)]="newMapping.cfCode" name="cc">
+          <input placeholder="Nome corso Ca' Foscari" [(ngModel)]="newMapping.cfName" name="cn">
+          <input type="number" placeholder="CFU Ca' Foscari" [(ngModel)]="newMapping.cfCredits" name="ccr">
+        </div>
+        <br>
+        <button (click)="addMapping()">Aggiungi</button>
+      </div>
+    }
+
+    <!-- LEARNING AGREEMENTS -->
     <h3>Learning Agreements</h3>
     @if (application().learningAgreements.length === 0) {
       <p>Nessun documento caricato.</p>
     } @else {
-      <ul>
-        @for (la of application().learningAgreements; track la._id) {
-          <li style="margin-bottom: 6px;">
-            {{ la.filePath }} - <strong>{{ la.status }}</strong>
-            @if (la.reason) { <em>({{ la.reason }})</em> }
-          </li>
-        }
-      </ul>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
+        <tbody>
+          @for (la of application().learningAgreements; track la._id) {
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 8px;">{{ la.filePath }}</td>
+              <td style="padding: 8px;"><strong>{{ la.status }}</strong></td>
+              <td style="padding: 8px;">@if (la.reason) { <em>{{ la.reason }}</em> }</td>
+              @if (isLecturer() && la.status === 'pending') {
+                <td style="padding: 8px;">
+                  <button (click)="evaluateLA(la._id, 'approved')">Approva</button>
+                  <button (click)="evaluateLA(la._id, 'rejected')">Rifiuta</button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
     }
 
+    <!-- STUDENTE: carica LA -->
+    @if (isStudent()) {
+      <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
+        <h4>Carica Learning Agreement</h4>
+        <input type="file" (change)="onLAFileSelected($event)">
+        <button (click)="uploadLA()">Carica</button>
+      </div>
+    }
+
+    <!-- STUDENTE: date -->
+    @if (isStudent()) {
+      <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
+        <h4>Date di mobilità</h4>
+        <label>Arrivo: <input type="date" [(ngModel)]="arrivalDate" name="ad"></label>
+        <label style="margin-left: 1rem;">Partenza: <input type="date" [(ngModel)]="departureDate" name="dd"></label>
+        <button (click)="saveDates()" style="margin-left: 1rem;">Salva date</button>
+      </div>
+    }
+
+    <!-- TRANSCRIPT -->
     <h3>Transcript of Records</h3>
     @if (application().transcripts.length === 0) {
       <p>Nessun transcript caricato.</p>
@@ -88,18 +141,45 @@
       </ul>
     }
 
+    @if (isStudent()) {
+      <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
+        <h4>Carica Transcript of Records</h4>
+        <input type="file" (change)="onTranscriptFileSelected($event)">
+        <button (click)="uploadTranscript()">Carica</button>
+      </div>
+    }
+
+    <!-- MODIFICHE -->
     <h3>Modifiche proposte</h3>
     @if (application().modifications.length === 0) {
       <p>Nessuna modifica proposta.</p>
     } @else {
-      <ul>
-        @for (mod of application().modifications; track mod._id) {
-          <li style="margin-bottom: 6px;">
-            {{ mod.description }} - <strong>{{ mod.status }}</strong>
-            @if (mod.reason) { <em>({{ mod.reason }})</em> }
-          </li>
-        }
-      </ul>
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+        <tbody>
+          @for (mod of application().modifications; track mod._id) {
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 8px;">{{ mod.description }}</td>
+              <td style="padding: 8px;"><strong>{{ mod.status }}</strong></td>
+              <td style="padding: 8px;">@if (mod.reason) { <em>{{ mod.reason }}</em> }</td>
+              @if (isLecturer() && mod.status === 'pending') {
+                <td style="padding: 8px;">
+                  <button (click)="evaluateMod(mod._id, 'approved')">Approva</button>
+                  <button (click)="evaluateMod(mod._id, 'rejected')">Rifiuta</button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <!-- STAFF -->
+    @if (isStaff()) {
+      <div style="border: 2px solid #333; padding: 1rem; margin-top: 2rem;">
+        <h4>Azioni Overseas Office</h4>
+        <button (click)="completePreDeparture()">Completa fase pre-partenza</button>
+        <button (click)="closeApp()" style="margin-left: 1rem;">Chiudi domanda</button>
+      </div>
     }
   }
 
