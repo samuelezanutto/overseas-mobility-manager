@@ -8,10 +8,11 @@ import userRoutes from './routes/users';
 import { seedInstitutions, seedUsers } from './seed';
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT || 3000;
+const CORS_ORIGIN = process.env.CORS_ORIGIN || 'http://localhost:4200';
 
 app.use(cors({
-    origin: 'http://localhost:4200',
+    origin: CORS_ORIGIN,
     credentials: true
 }));
 
