@@ -1,8 +1,9 @@
 <div class="container">
-
   <button class="btn-outline" (click)="goBack()">&larr; Back to dashboard</button>
 
-  @if (loading()) { <p>Loading...</p> }
+  @if (loading()) {
+    <p>Loading...</p>
+  }
 
   @if (errorMessage()) {
     <div class="message error">{{ errorMessage() }}</div>
@@ -15,14 +16,31 @@
     <h2>Mobility application</h2>
 
     <table>
-      <tr><td><strong>Academic year</strong></td><td>{{ application().academicYear }}</td></tr>
-      <tr><td><strong>Period</strong></td><td>{{ application().mobilityPeriod }}</td></tr>
-      <tr><td><strong>Status</strong></td><td><span class="badge">{{ statusLabel(application().status) }}</span></td></tr>
+      <tr>
+        <td><strong>Academic year</strong></td>
+        <td>{{ application().academicYear }}</td>
+      </tr>
+      <tr>
+        <td><strong>Period</strong></td>
+        <td>{{ periodLabel(application().mobilityPeriod) }}</td>
+      </tr>
+      <tr>
+        <td><strong>Status</strong></td>
+        <td>
+          <span class="badge">{{ statusLabel(application().status) }}</span>
+        </td>
+      </tr>
       @if (application().arrivalDate) {
-        <tr><td><strong>Arrival</strong></td><td>{{ application().arrivalDate }}</td></tr>
+        <tr>
+          <td><strong>Arrival</strong></td>
+          <td>{{ application().arrivalDate }}</td>
+        </tr>
       }
       @if (application().departureDate) {
-        <tr><td><strong>Departure</strong></td><td>{{ application().departureDate }}</td></tr>
+        <tr>
+          <td><strong>Departure</strong></td>
+          <td>{{ application().departureDate }}</td>
+        </tr>
       }
     </table>
 
@@ -41,7 +59,9 @@
             <th>CF course</th>
             <th>Credits</th>
             <th>Grade</th>
-            @if (isLecturer()) { <th>Actions</th> }
+            @if (isLecturer()) {
+              <th>Actions</th>
+            }
           </tr>
         </thead>
         <tbody>
@@ -56,11 +76,16 @@
               <td>
                 @if (m.result) {
                   {{ m.result.score }}
-                  <span class="badge"
-                        [class.badge-approved]="m.result.approvalStatus === 'approved'"
-                        [class.badge-rejected]="m.result.approvalStatus === 'rejected'"
-                        [class.badge-pending]="m.result.approvalStatus === 'pending'">{{ m.result.approvalStatus }}</span>
-                } @else { - }
+                  <span
+                    class="badge"
+                    [class.badge-approved]="m.result.approvalStatus === 'approved'"
+                    [class.badge-rejected]="m.result.approvalStatus === 'rejected'"
+                    [class.badge-pending]="m.result.approvalStatus === 'pending'"
+                    >{{ m.result.approvalStatus }}</span
+                  >
+                } @else {
+                  -
+                }
               </td>
               @if (isLecturer()) {
                 <td>
@@ -80,14 +105,24 @@
       <div class="card">
         <h4>Add exam</h4>
         <div class="grid-2">
-          <input placeholder="Foreign code" [(ngModel)]="newMapping.foreignCode" name="fc">
-          <input placeholder="Foreign course name" [(ngModel)]="newMapping.foreignName" name="fn">
-          <input type="number" placeholder="Foreign credits" [(ngModel)]="newMapping.foreignCredits" name="fcr">
-          <input placeholder="Ca' Foscari code" [(ngModel)]="newMapping.cfCode" name="cc">
-          <input placeholder="Ca' Foscari course name" [(ngModel)]="newMapping.cfName" name="cn">
-          <input type="number" placeholder="Ca' Foscari credits" [(ngModel)]="newMapping.cfCredits" name="ccr">
+          <input placeholder="Foreign code" [(ngModel)]="newMapping.foreignCode" name="fc" />
+          <input placeholder="Foreign course name" [(ngModel)]="newMapping.foreignName" name="fn" />
+          <input
+            type="number"
+            placeholder="Foreign credits"
+            [(ngModel)]="newMapping.foreignCredits"
+            name="fcr"
+          />
+          <input placeholder="Ca' Foscari code" [(ngModel)]="newMapping.cfCode" name="cc" />
+          <input placeholder="Ca' Foscari course name" [(ngModel)]="newMapping.cfName" name="cn" />
+          <input
+            type="number"
+            placeholder="Ca' Foscari credits"
+            [(ngModel)]="newMapping.cfCredits"
+            name="ccr"
+          />
         </div>
-        <br>
+        <br />
         <button (click)="addMapping()">Add</button>
       </div>
     }
@@ -102,19 +137,30 @@
           @for (la of application().learningAgreements; track la._id) {
             <tr>
               <td>
-                <a href="javascript:void(0)" (click)="downloadFile(la.filePath)">{{ fileName(la.filePath) }}</a>
+                <a href="javascript:void(0)" (click)="downloadFile(la.filePath)">{{
+                  fileName(la.filePath)
+                }}</a>
               </td>
               <td>
-                <span class="badge"
-                      [class.badge-approved]="la.status === 'approved'"
-                      [class.badge-rejected]="la.status === 'rejected'"
-                      [class.badge-pending]="la.status === 'pending'">{{ la.status }}</span>
+                <span
+                  class="badge"
+                  [class.badge-approved]="la.status === 'approved'"
+                  [class.badge-rejected]="la.status === 'rejected'"
+                  [class.badge-pending]="la.status === 'pending'"
+                  >{{ la.status }}</span
+                >
               </td>
-              <td>@if (la.reason) { <em>{{ la.reason }}</em> }</td>
+              <td>
+                @if (la.reason) {
+                  <em>{{ la.reason }}</em>
+                }
+              </td>
               @if (isLecturer() && la.status === 'pending') {
                 <td>
                   <button (click)="evaluateLA(la._id, 'approved')">Approve</button>
-                  <button class="btn-danger" (click)="evaluateLA(la._id, 'rejected')">Reject</button>
+                  <button class="btn-danger" (click)="evaluateLA(la._id, 'rejected')">
+                    Reject
+                  </button>
                 </td>
               }
             </tr>
@@ -127,7 +173,7 @@
     @if (isStudent()) {
       <div class="card">
         <h4>Upload Learning Agreement</h4>
-        <input type="file" (change)="onLAFileSelected($event)">
+        <input type="file" (change)="onLAFileSelected($event)" />
         <button (click)="uploadLA()">Upload</button>
       </div>
     }
@@ -136,8 +182,10 @@
     @if (isStudent()) {
       <div class="card">
         <h4>Mobility dates</h4>
-        <label>Arrival: <input type="date" [(ngModel)]="arrivalDate" name="ad"></label>
-        <label class="ml-1">Departure: <input type="date" [(ngModel)]="departureDate" name="dd"></label>
+        <label>Arrival: <input type="date" [(ngModel)]="arrivalDate" name="ad" /></label>
+        <label class="ml-1"
+          >Departure: <input type="date" [(ngModel)]="departureDate" name="dd"
+        /></label>
         <button class="ml-1" (click)="saveDates()">Save dates</button>
       </div>
     }
@@ -149,7 +197,11 @@
     } @else {
       <ul>
         @for (t of application().transcripts; track t._id) {
-          <li><a href="javascript:void(0)" (click)="downloadFile(t.filePath)">{{ fileName(t.filePath) }}</a></li>
+          <li>
+            <a href="javascript:void(0)" (click)="downloadFile(t.filePath)">{{
+              fileName(t.filePath)
+            }}</a>
+          </li>
         }
       </ul>
     }
@@ -157,7 +209,7 @@
     @if (isStudent()) {
       <div class="card">
         <h4>Upload Transcript of Records</h4>
-        <input type="file" (change)="onTranscriptFileSelected($event)">
+        <input type="file" (change)="onTranscriptFileSelected($event)" />
         <button (click)="uploadTranscript()">Upload</button>
       </div>
     }
@@ -173,16 +225,25 @@
             <tr>
               <td>{{ mod.description }}</td>
               <td>
-                <span class="badge"
-                      [class.badge-approved]="mod.status === 'approved'"
-                      [class.badge-rejected]="mod.status === 'rejected'"
-                      [class.badge-pending]="mod.status === 'pending'">{{ mod.status }}</span>
+                <span
+                  class="badge"
+                  [class.badge-approved]="mod.status === 'approved'"
+                  [class.badge-rejected]="mod.status === 'rejected'"
+                  [class.badge-pending]="mod.status === 'pending'"
+                  >{{ mod.status }}</span
+                >
               </td>
-              <td>@if (mod.reason) { <em>{{ mod.reason }}</em> }</td>
+              <td>
+                @if (mod.reason) {
+                  <em>{{ mod.reason }}</em>
+                }
+              </td>
               @if (isLecturer() && mod.status === 'pending') {
                 <td>
                   <button (click)="evaluateMod(mod._id, 'approved')">Approve</button>
-                  <button class="btn-danger" (click)="evaluateMod(mod._id, 'rejected')">Reject</button>
+                  <button class="btn-danger" (click)="evaluateMod(mod._id, 'rejected')">
+                    Reject
+                  </button>
                 </td>
               }
             </tr>
@@ -191,34 +252,51 @@
       </table>
     }
 
-  @if (isStudent()) {
-    <div class="card">
-      <h4>Propose a change to the exam plan</h4>
+    @if (isStudent()) {
+      <div class="card">
+        <h4>Propose a change to the exam plan</h4>
 
-      <div class="field">
-        <label>Description of the change</label>
-        <input [(ngModel)]="modDescription" name="modDesc"
-              placeholder="E.g. The course is no longer available, replaced with...">
+        <div class="field">
+          <label>Description of the change</label>
+          <input
+            [(ngModel)]="modDescription"
+            name="modDesc"
+            placeholder="E.g. The course is no longer available, replaced with..."
+          />
+        </div>
+
+        <p><strong>New proposed exam:</strong></p>
+        <div class="grid-2">
+          <input placeholder="Foreign code" [(ngModel)]="modMapping.foreignCode" name="mfc" />
+          <input
+            placeholder="Foreign course name"
+            [(ngModel)]="modMapping.foreignName"
+            name="mfn"
+          />
+          <input
+            type="number"
+            placeholder="Foreign credits"
+            [(ngModel)]="modMapping.foreignCredits"
+            name="mfcr"
+          />
+          <input placeholder="Ca' Foscari code" [(ngModel)]="modMapping.cfCode" name="mcc" />
+          <input placeholder="Ca' Foscari course name" [(ngModel)]="modMapping.cfName" name="mcn" />
+          <input
+            type="number"
+            placeholder="Ca' Foscari credits"
+            [(ngModel)]="modMapping.cfCredits"
+            name="mccr"
+          />
+        </div>
+
+        <div class="field">
+          <label>New Learning Agreement</label>
+          <input type="file" (change)="onModFileSelected($event)" />
+        </div>
+
+        <button (click)="proposeModification()">Propose change</button>
       </div>
-
-      <p><strong>New proposed exam:</strong></p>
-      <div class="grid-2">
-        <input placeholder="Foreign code" [(ngModel)]="modMapping.foreignCode" name="mfc">
-        <input placeholder="Foreign course name" [(ngModel)]="modMapping.foreignName" name="mfn">
-        <input type="number" placeholder="Foreign credits" [(ngModel)]="modMapping.foreignCredits" name="mfcr">
-        <input placeholder="Ca' Foscari code" [(ngModel)]="modMapping.cfCode" name="mcc">
-        <input placeholder="Ca' Foscari course name" [(ngModel)]="modMapping.cfName" name="mcn">
-        <input type="number" placeholder="Ca' Foscari credits" [(ngModel)]="modMapping.cfCredits" name="mccr">
-      </div>
-
-      <div class="field">
-        <label>New Learning Agreement</label>
-        <input type="file" (change)="onModFileSelected($event)">
-      </div>
-
-      <button (click)="proposeModification()">Propose change</button>
-    </div>
-  }
+    }
 
     <!-- STAFF -->
     @if (isStaff()) {
@@ -229,5 +307,4 @@
       </div>
     }
   }
-
 </div>

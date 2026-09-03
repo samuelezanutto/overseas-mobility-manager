@@ -16,12 +16,12 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
 
     try {
         const application = new MobilityApplication({
-            studentId: req.user!.id,    
+            studentId: req.user!.id,
             institutionId,
             lecturerId,
             academicYear,
             mobilityPeriod,
-            status: 'created'           // initial status
+            status: 'created'
         });
         await application.save();
         res.status(201).json(application);
@@ -37,10 +37,10 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
         const { role, id } = req.user!;
 
         if (role === 'student') {
-            // student see only their applications
+            // students see only their own applications
             applications = await MobilityApplication.find({ studentId: id });
         } else if (role === 'lecturer') {
-            // lecturer see only applications they are assigned to
+            // lecturers see only applications they are assigned to
             applications = await MobilityApplication.find({ lecturerId: id });
         } else {
             // staff see all applications
@@ -66,9 +66,8 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// POST /applications/:id/mappings  → add mappings to an application (only for students)
+// POST /applications/:id/mappings - add mappings to an application (only for students)
 router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response) => {
-    // only students can add mappings
     if (req.user!.role !== 'student') {
         return res.status(403).json({ message: 'Only students can add mappings' });
     }
@@ -84,7 +83,6 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        // check if the student owns this application
         if (application.studentId.toString() !== req.user!.id) {
             return res.status(403).json({ message: 'Access denied' });
         }
@@ -110,50 +108,49 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-router.post('/:id/learning-agreement', 
-    authMiddleware, 
-    upload.single('file'),         
+router.post('/:id/learning-agreement',
+    authMiddleware,
+    upload.single('file'),
     async (req: Request, res: Response) => {
-
-    if (req.user!.role !== 'student') {
-        return res.status(403).json({ message: 'Only students can upload learning agreements' });
-    }
-
-    if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    try {
-        const application = await MobilityApplication.findById(req.params.id);
-        if (!application) {
-            return res.status(404).json({ message: 'Application not found' });
+        if (req.user!.role !== 'student') {
+            return res.status(403).json({ message: 'Only students can upload learning agreements' });
         }
 
-        if (application.studentId.toString() !== req.user!.id) {
-            return res.status(403).json({ message: 'Access denied' });
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        application.learningAgreements.push({
-            filePath: req.file.path,
-            uploadedAt: new Date(),
-            status: 'pending'
-        });
+        try {
+            const application = await MobilityApplication.findById(req.params.id);
+            if (!application) {
+                return res.status(404).json({ message: 'Application not found' });
+            }
 
-        application.status = 'awaiting_la_approval';
+            if (application.studentId.toString() !== req.user!.id) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
 
-        await application.save();
-        res.status(201).json(application);
-    } catch (error) {
-        res.status(500).json({ message: 'Error uploading learning agreement' });
-    }
-});
+            application.learningAgreements.push({
+                filePath: req.file.path,
+                uploadedAt: new Date(),
+                status: 'pending'
+            });
 
-//PATCH /applications/:id/learning-agreement/:agreementId/evaluate
+            application.status = 'awaiting_la_approval';
+
+            await application.save();
+            res.status(201).json(application);
+        } catch (error) {
+            res.status(500).json({ message: 'Error uploading learning agreement' });
+        }
+    });
+
+// PATCH /applications/:id/learning-agreement/:agreementId/evaluate
 router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, async (req: Request, res: Response) => {
     if (req.user!.role !== 'lecturer') {
         return res.status(403).json({ message: 'Only lecturers can evaluate learning agreements' });
     }
-    
+
     const { decision, reason } = req.body;
     if (!['approved', 'rejected'].includes(decision)) {
         return res.status(400).json({ message: 'Decision must be either "approved" or "rejected"' });
@@ -177,7 +174,7 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
         }
 
         learningAgreement.status = decision;
-        learningAgreement.decisionDate = new Date();  
+        learningAgreement.decisionDate = new Date();
         if (reason) {
             learningAgreement.reason = reason;
         }
@@ -189,27 +186,23 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
     }
 });
 
-//PATCH /applications/:id/pre-departure
+// PATCH /applications/:id/pre-departure
 router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Response) => {
-    //verify that the user is a staff member
     if (req.user!.role !== 'staff') {
         return res.status(403).json({ message: 'Only staff can update pre-departure status' });
     }
 
-    //find the application
     try {
         const application = await MobilityApplication.findById(req.params.id);
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        //verify at least one learning agreement is approved
         const approvedLA = application.learningAgreements.some(la => la.status === 'approved');
         if (!approvedLA) {
             return res.status(400).json({ message: 'At least one learning agreement must be approved before updating pre-departure status' });
         }
 
-        //update status = 'pre_departure_completed'
         application.status = 'pre_departure_completed';
         await application.save();
         res.json(application);
@@ -218,7 +211,7 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
     }
 });
 
-//PATCH /applications/:id/dates
+// PATCH /applications/:id/dates
 router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) => {
     if (req.user!.role !== 'student') {
         return res.status(403).json({ message: 'Only students can update dates' });
@@ -256,68 +249,67 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
     }
 });
 
-//POST /applications/:id/modifications
+// POST /applications/:id/modifications
 router.post('/:id/modifications',
     authMiddleware,
-    upload.single('file'),         
+    upload.single('file'),
     async (req: Request, res: Response) => {
-
-    if (req.user!.role !== 'student') {
-        return res.status(403).json({ message: 'Only students can request modifications' });
-    }
-
-    if (!req.file) {
-        return res.status(400).json({ message: 'A new learning agreement file is required' });
-    }
-
-    const { description, proposedMappings } = req.body;
-    if (!description) {
-        return res.status(400).json({ message: 'Description is required' });
-    }
-
-    let parsedMappings;
-    try {
-        parsedMappings = typeof proposedMappings === 'string' 
-            ? JSON.parse(proposedMappings) 
-            : proposedMappings;
-    } catch {
-        return res.status(400).json({ message: 'Invalid proposedMappings format' });
-    }
-
-    if (!Array.isArray(parsedMappings) || parsedMappings.length === 0) {
-        return res.status(400).json({ message: 'proposedMappings must be a non-empty array' });
-    }
-
-    try {
-        const application = await MobilityApplication.findById(req.params.id);
-        if (!application) {
-            return res.status(404).json({ message: 'Application not found' });
+        if (req.user!.role !== 'student') {
+            return res.status(403).json({ message: 'Only students can request modifications' });
         }
 
-        if (application.studentId.toString() !== req.user!.id) {
-            return res.status(403).json({ message: 'Access denied' });
+        if (!req.file) {
+            return res.status(400).json({ message: 'A new learning agreement file is required' });
         }
 
-        application.learningAgreements.push({
-            filePath: req.file.path,
-            uploadedAt: new Date(),
-            status: 'pending'
-        });
+        const { description, proposedMappings } = req.body;
+        if (!description) {
+            return res.status(400).json({ message: 'Description is required' });
+        }
 
-        application.modifications.push({
-            description,
-            proposedMappings: parsedMappings,
-            status: 'pending'
-        });
+        let parsedMappings;
+        try {
+            parsedMappings = typeof proposedMappings === 'string'
+                ? JSON.parse(proposedMappings)
+                : proposedMappings;
+        } catch {
+            return res.status(400).json({ message: 'Invalid proposedMappings format' });
+        }
 
-        await application.save();
-        res.status(201).json(application);
-    } catch (error) {
-        res.status(500).json({ message: 'Error requesting modification' });
-    }
-});
+        if (!Array.isArray(parsedMappings) || parsedMappings.length === 0) {
+            return res.status(400).json({ message: 'proposedMappings must be a non-empty array' });
+        }
 
-//PATCH /applications/:id/modifications/:modificationId/evaluate
+        try {
+            const application = await MobilityApplication.findById(req.params.id);
+            if (!application) {
+                return res.status(404).json({ message: 'Application not found' });
+            }
+
+            if (application.studentId.toString() !== req.user!.id) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
+
+            application.learningAgreements.push({
+                filePath: req.file.path,
+                uploadedAt: new Date(),
+                status: 'pending'
+            });
+
+            application.modifications.push({
+                description,
+                proposedMappings: parsedMappings,
+                status: 'pending'
+            });
+
+            await application.save();
+            res.status(201).json(application);
+        } catch (error) {
+            res.status(500).json({ message: 'Error requesting modification' });
+        }
+    });
+
+// PATCH /applications/:id/modifications/:modificationId/evaluate
 router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, async (req: Request, res: Response) => {
     if (req.user!.role !== 'lecturer') {
         return res.status(403).json({ message: 'Only lecturers can evaluate modifications' });
@@ -353,7 +345,7 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
 
         if (decision === 'approved') {
             application.mappings.forEach(m => { m.isActive = false; });
-            
+
             modification.proposedMappings.forEach(pm => {
                 application.mappings.push({
                     foreignCode: pm.foreignCode,
@@ -375,45 +367,44 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
     }
 });
 
-//POST /applications/:id/transcript
+// POST /applications/:id/transcript
 router.post('/:id/transcript',
     authMiddleware,
     upload.single('file'),
     async (req: Request, res: Response) => {
-
-    if (req.user!.role !== 'student') {
-        return res.status(403).json({ message: 'Only students can upload transcripts' });
-    }
-
-    if (!req.file) {
-        return res.status(400).json({ message: 'No file uploaded' });
-    }
-
-    try {
-        const application = await MobilityApplication.findById(req.params.id);
-        if (!application) {
-            return res.status(404).json({ message: 'Application not found' });
+        if (req.user!.role !== 'student') {
+            return res.status(403).json({ message: 'Only students can upload transcripts' });
         }
 
-        if (application.studentId.toString() !== req.user!.id) {
-            return res.status(403).json({ message: 'Access denied' });
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        application.transcripts.push({
-            filePath: req.file.path,
-            uploadedAt: new Date()
-        });
+        try {
+            const application = await MobilityApplication.findById(req.params.id);
+            if (!application) {
+                return res.status(404).json({ message: 'Application not found' });
+            }
 
-        application.status = 'waiting_score_approval';  
+            if (application.studentId.toString() !== req.user!.id) {
+                return res.status(403).json({ message: 'Access denied' });
+            }
 
-        await application.save();
-        res.status(201).json(application);
-    } catch (error) {
-        res.status(500).json({ message: 'Error uploading transcript' });
-    }
-});
+            application.transcripts.push({
+                filePath: req.file.path,
+                uploadedAt: new Date()
+            });
 
-//PATCH /applications/:id/mappings/:mappingId/result
+            application.status = 'waiting_score_approval';
+
+            await application.save();
+            res.status(201).json(application);
+        } catch (error) {
+            res.status(500).json({ message: 'Error uploading transcript' });
+        }
+    });
+
+// PATCH /applications/:id/mappings/:mappingId/result
 router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Request, res: Response) => {
     if (req.user!.role !== 'lecturer') {
         return res.status(403).json({ message: 'Access denied' });
@@ -453,7 +444,7 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
     }
 });
 
-//PATCH /applications/:id/close
+// PATCH /applications/:id/close
 router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) => {
     if (req.user!.role !== 'staff') {
         return res.status(403).json({ message: 'Only staff can close applications' });
@@ -492,7 +483,7 @@ router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Res
         const { role, id } = req.user!;
         const isOwner = application.studentId.toString() === id;
         const isReferent = application.lecturerId.toString() === id;
-        
+
         if (role !== 'staff' && !isOwner && !isReferent) {
             return res.status(403).json({ message: 'Access denied' });
         }

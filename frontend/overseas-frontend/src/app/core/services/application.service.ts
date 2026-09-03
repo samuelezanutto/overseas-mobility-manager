@@ -3,88 +3,90 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-    providedIn: 'root'
+  providedIn: 'root',
 })
 export class ApplicationService {
-    private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl;
 
-    constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-    getApplications() {
-        return this.http.get<any[]>(`${this.apiUrl}/applications`);
-    }
+  getApplications() {
+    return this.http.get<any[]>(`${this.apiUrl}/applications`);
+  }
 
-    getApplication(id: string) {
-        return this.http.get<any>(`${this.apiUrl}/applications/${id}`);
-    }
+  getApplication(id: string) {
+    return this.http.get<any>(`${this.apiUrl}/applications/${id}`);
+  }
 
-    createApplication(data: any) {
-        return this.http.post<any>(`${this.apiUrl}/applications`, data);
-    }
+  createApplication(data: any) {
+    return this.http.post<any>(`${this.apiUrl}/applications`, data);
+  }
 
-    addMappings(id: string, mappings: any[]) {
-        return this.http.post<any>(`${this.apiUrl}/applications/${id}/mappings`, { mappings });
-    }
+  addMappings(id: string, mappings: any[]) {
+    return this.http.post<any>(`${this.apiUrl}/applications/${id}/mappings`, { mappings });
+  }
 
-    uploadLearningAgreement(id: string, file: File) {
-        const formData = new FormData();
-        formData.append('file', file);
-        return this.http.post<any>(`${this.apiUrl}/applications/${id}/learning-agreement`, formData);
-    }
+  uploadLearningAgreement(id: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/applications/${id}/learning-agreement`, formData);
+  }
 
-    evaluateLearningAgreement(id: string, agreementId: string, decision: string, reason?: string) {
-        return this.http.patch<any>(
-            `${this.apiUrl}/applications/${id}/learning-agreement/${agreementId}/evaluate`,
-            { decision, reason }
-        );
-    }
+  evaluateLearningAgreement(id: string, agreementId: string, decision: string, reason?: string) {
+    return this.http.patch<any>(
+      `${this.apiUrl}/applications/${id}/learning-agreement/${agreementId}/evaluate`,
+      { decision, reason },
+    );
+  }
 
-    setPreDeparture(id: string) {
-        return this.http.patch<any>(`${this.apiUrl}/applications/${id}/pre-departure`, {});
-    }
+  setPreDeparture(id: string) {
+    return this.http.patch<any>(`${this.apiUrl}/applications/${id}/pre-departure`, {});
+  }
 
-    setDates(id: string, arrivalDate: string, departureDate: string) {
-        return this.http.patch<any>(`${this.apiUrl}/applications/${id}/dates`, { arrivalDate, departureDate });
-    }
+  setDates(id: string, arrivalDate: string, departureDate: string) {
+    return this.http.patch<any>(`${this.apiUrl}/applications/${id}/dates`, {
+      arrivalDate,
+      departureDate,
+    });
+  }
 
-    proposeModification(id: string, description: string, proposedMappings: any[], file: File) {
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('description', description);
-        formData.append('proposedMappings', JSON.stringify(proposedMappings));
-        return this.http.post<any>(`${this.apiUrl}/applications/${id}/modifications`, formData);
-    }
+  proposeModification(id: string, description: string, proposedMappings: any[], file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('description', description);
+    formData.append('proposedMappings', JSON.stringify(proposedMappings));
+    return this.http.post<any>(`${this.apiUrl}/applications/${id}/modifications`, formData);
+  }
 
-    evaluateModification(id: string, modificationId: string, decision: string, reason?: string) {
-        return this.http.patch<any>(
-            `${this.apiUrl}/applications/${id}/modifications/${modificationId}/evaluate`,
-            { decision, reason }
-        );
-    }
+  evaluateModification(id: string, modificationId: string, decision: string, reason?: string) {
+    return this.http.patch<any>(
+      `${this.apiUrl}/applications/${id}/modifications/${modificationId}/evaluate`,
+      { decision, reason },
+    );
+  }
 
-    uploadTranscript(id: string, file: File) {
-        const formData = new FormData();
-        formData.append('file', file);
-        return this.http.post<any>(`${this.apiUrl}/applications/${id}/transcript`, formData);
-    }
+  uploadTranscript(id: string, file: File) {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.http.post<any>(`${this.apiUrl}/applications/${id}/transcript`, formData);
+  }
 
-    setExamResult(id: string, mappingId: string, score: string, examDate: string) {
-        return this.http.patch<any>(
-            `${this.apiUrl}/applications/${id}/mappings/${mappingId}/result`,
-            { score, examDate }
-        );
-    }
+  setExamResult(id: string, mappingId: string, score: string, examDate: string) {
+    return this.http.patch<any>(`${this.apiUrl}/applications/${id}/mappings/${mappingId}/result`, {
+      score,
+      examDate,
+    });
+  }
 
-    closeApplication(id: string) {
-        return this.http.patch<any>(`${this.apiUrl}/applications/${id}/close`, {});
-    }
+  closeApplication(id: string) {
+    return this.http.patch<any>(`${this.apiUrl}/applications/${id}/close`, {});
+  }
 
-    downloadFile(applicationId: string, filePath: string) {
+  downloadFile(applicationId: string, filePath: string) {
     // extract just the filename from the full path "uploads/123-file.pdf"
-        const filename = filePath.split('/').pop();
-        return this.http.get(
-            `${this.apiUrl}/applications/${applicationId}/files/${filename}`,
-            { responseType: 'blob' }
-        );
-    }
+    const filename = filePath.split('/').pop();
+    return this.http.get(`${this.apiUrl}/applications/${applicationId}/files/${filename}`, {
+      responseType: 'blob',
+    });
+  }
 }

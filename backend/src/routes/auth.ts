@@ -77,13 +77,13 @@ router.post('/login', async (req: Request, res: Response) => {
         }
 
         const token = jwt.sign(
-            { id: user._id, role: user.role }, 
-            JWT_SECRET, 
+            { id: user._id, role: user.role },
+            JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
 
-        res.status(201).json({ 
-            token, 
+        res.status(201).json({
+            token,
             user: {
                 id: user._id,
                 email: user.email,

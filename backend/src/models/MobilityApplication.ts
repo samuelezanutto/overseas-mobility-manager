@@ -4,13 +4,13 @@ import { Schema, model, Types } from 'mongoose';
 
 export type MobilityPeriod = 'first_semester' | 'second_semester' | 'full_year';
 
-export type MobilityStatus = 
-    'created' | 
-    'awaiting_la_approval' | 
-    'pre_departure_completed' | 
-    'mobility_in_progress' | 
-    'waiting_score_approval' | 
-    'closed' | 
+export type MobilityStatus =
+    'created' |
+    'awaiting_la_approval' |
+    'pre_departure_completed' |
+    'mobility_in_progress' |
+    'waiting_score_approval' |
+    'closed' |
     'canceled';
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
@@ -18,7 +18,7 @@ export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 // ─── Subdocument interfaces ───────────────────────────────────────────────────
 
 export interface IExamResult {
-    score: string;          
+    score: string;
     examDate: Date;
     approvalStatus: ApprovalStatus;
 }
@@ -26,17 +26,17 @@ export interface IExamResult {
 export interface IExamMapping {
     _id?: Types.ObjectId;
     foreignCode: string;
-    foreignName: string;    
+    foreignName: string;
     foreignCredits: number;
     cfCode: string;
-    cfName: string;         
+    cfName: string;
     cfCredits: number;
     isActive: boolean;
-    result?: IExamResult;   
+    result?: IExamResult;
 }
 
 export interface ILearningAgreement {
-    _id?: Types.ObjectId;  
+    _id?: Types.ObjectId;
     filePath: string;
     uploadedAt: Date;
     status: ApprovalStatus;
@@ -55,7 +55,7 @@ export interface IModification {
     status: ApprovalStatus;
     decisionDate?: Date;
     reason?: string;
-    proposedMappings: IExamMapping[];   
+    proposedMappings: IExamMapping[];
 }
 
 export interface IMobilityApplication {
@@ -78,10 +78,10 @@ export interface IMobilityApplication {
 const examResultSchema = new Schema<IExamResult>({
     score: { type: String, required: true },
     examDate: { type: Date, required: true },
-    approvalStatus: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected'], 
-        default: 'pending' 
+    approvalStatus: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     }
 });
 
@@ -93,16 +93,16 @@ const examMappingSchema = new Schema<IExamMapping>({
     cfName: { type: String, required: true },
     cfCredits: { type: Number, required: true },
     isActive: { type: Boolean, default: true },
-    result: { type: examResultSchema }      
+    result: { type: examResultSchema }
 });
 
 const learningAgreementSchema = new Schema<ILearningAgreement>({
     filePath: { type: String, required: true },
     uploadedAt: { type: Date, default: Date.now },
-    status: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected'], 
-        default: 'pending' 
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     decisionDate: { type: Date },
     reason: { type: String }
@@ -115,14 +115,14 @@ const transcriptSchema = new Schema<ITranscript>({
 
 const modificationSchema = new Schema<IModification>({
     description: { type: String, required: true },
-    status: { 
-        type: String, 
-        enum: ['pending', 'approved', 'rejected'], 
-        default: 'pending' 
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
     },
     decisionDate: { type: Date },
     reason: { type: String },
-    proposedMappings: [examMappingSchema]  
+    proposedMappings: [examMappingSchema]
 });
 
 // ─── Main Schema ────────────────────────────────────────────────────────
@@ -132,16 +132,16 @@ const mobilityApplicationSchema = new Schema<IMobilityApplication>({
     lecturerId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     institutionId: { type: Schema.Types.ObjectId, ref: 'Institution', required: true },
     academicYear: { type: String, required: true },
-    mobilityPeriod: { 
-        type: String, 
-        enum: ['first_semester', 'second_semester', 'full_year'], 
-        required: true 
+    mobilityPeriod: {
+        type: String,
+        enum: ['first_semester', 'second_semester', 'full_year'],
+        required: true
     },
-    status: { 
-        type: String, 
-        enum: ['created', 'awaiting_la_approval', 'pre_departure_completed', 
-               'mobility_in_progress', 'waiting_score_approval', 'closed', 'canceled'], 
-        required: true 
+    status: {
+        type: String,
+        enum: ['created', 'awaiting_la_approval', 'pre_departure_completed',
+               'mobility_in_progress', 'waiting_score_approval', 'closed', 'canceled'],
+        required: true
     },
     arrivalDate: { type: Date },
     departureDate: { type: Date },
@@ -154,6 +154,6 @@ const mobilityApplicationSchema = new Schema<IMobilityApplication>({
 });
 
 export const MobilityApplication = model<IMobilityApplication>(
-    'MobilityApplication', 
+    'MobilityApplication',
     mobilityApplicationSchema
 );

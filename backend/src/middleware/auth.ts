@@ -23,7 +23,7 @@ export const authMiddleware = (req: Request, res: Response, next: NextFunction) 
     if (!token) {
         return res.status(401).json({ message: 'Token missing' });
     }
-    
+
     try {
         const decoded = jwt.verify(token, JWT_SECRET) as { id: string; role: string };
         req.user = { id: decoded.id, role: decoded.role };

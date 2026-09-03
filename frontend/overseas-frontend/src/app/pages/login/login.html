@@ -1,21 +1,23 @@
 <div class="login-card">
-    <h2>Overseas - Login</h2>
+  <h2>Overseas - Login</h2>
 
-    @if (errorMessage()) {
-        <div class="message error">{{ errorMessage() }}</div>
-    }
+  @if (errorMessage()) {
+    <div class="message error">{{ errorMessage() }}</div>
+  }
 
-    <form (ngSubmit)="onSubmit()">
-        <div class="field">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="email" name="email" required />
-        </div>
-        <div class="field">
-            <label>Password</label>
-            <input type="password" [(ngModel)]="password" name="password" required />
-        </div>
-        <button type="submit">Log in</button>
-    </form>
+  <form (ngSubmit)="onSubmit()">
+    <div class="field">
+      <label>Email</label>
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" [(ngModel)]="password" name="password" required />
+    </div>
+    <button type="submit">Log in</button>
+  </form>
 
-    <p class="switch-link">Don't have an account? <a routerLink="/register">Register as a student</a></p>
+  <p class="switch-link">
+    Don't have an account? <a routerLink="/register">Register as a student</a>
+  </p>
 </div>

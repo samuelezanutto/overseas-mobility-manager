@@ -19,13 +19,20 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font-family:
+    system-ui,
+    -apple-system,
+    'Segoe UI',
+    Roboto,
+    sans-serif;
   background: var(--color-bg);
   color: var(--color-text);
   line-height: 1.5;
 }
 
-h2, h3, h4 {
+h2,
+h3,
+h4 {
   color: var(--color-text);
 }
 
@@ -78,7 +85,8 @@ button.btn-danger:hover {
   background: var(--color-danger-dark);
 }
 
-input, select {
+input,
+select {
   font-family: inherit;
   font-size: 0.9rem;
   padding: 0.5rem;
@@ -88,7 +96,8 @@ input, select {
   color: var(--color-text);
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   outline: 2px solid var(--color-primary);
   outline-offset: 1px;
 }
@@ -150,7 +159,8 @@ td {
   margin-bottom: 0.25rem;
 }
 
-.field input, .field select {
+.field input,
+.field select {
   width: 100%;
 }
 

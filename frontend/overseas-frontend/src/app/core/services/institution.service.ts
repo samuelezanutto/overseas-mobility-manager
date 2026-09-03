@@ -4,15 +4,15 @@ import { environment } from '../../../environments/environment';
 
 @Injectable({ providedIn: 'root' })
 export class InstitutionService {
-    private apiUrl = environment.apiUrl;
+  private apiUrl = environment.apiUrl;
 
-    constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient) {}
 
-    getInstitutions() {
-        return this.http.get<any[]>(`${this.apiUrl}/institutions`);
-    }
+  getInstitutions() {
+    return this.http.get<any[]>(`${this.apiUrl}/institutions`);
+  }
 
-    getLecturers() {
-        return this.http.get<any[]>(`${this.apiUrl}/users/lecturers`);
-    }
+  getLecturers() {
+    return this.http.get<any[]>(`${this.apiUrl}/users/lecturers`);
+  }
 }

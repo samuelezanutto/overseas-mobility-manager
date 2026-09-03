@@ -1,16 +1,18 @@
 <div class="container">
-
   <div class="topbar">
     <div>
       <h2>Overseas Mobility</h2>
       @if (user()) {
-        <p>Welcome, <strong>{{ user().firstName }} {{ user().lastName }}</strong> - Role: <strong>{{ user().role }}</strong></p>
+        <p>
+          Welcome, <strong>{{ user().firstName }} {{ user().lastName }}</strong> - Role:
+          <strong>{{ user().role }}</strong>
+        </p>
       }
     </div>
     <button class="btn-outline" (click)="logout()">Logout</button>
   </div>
 
-  <hr>
+  <hr />
 
   <h3>Your applications</h3>
 
@@ -44,8 +46,10 @@
         @for (app of applications(); track app._id) {
           <tr>
             <td>{{ app.academicYear }}</td>
-            <td>{{ app.mobilityPeriod }}</td>
-            <td><span class="badge">{{ app.status }}</span></td>
+            <td>{{ periodLabel(app.mobilityPeriod) }}</td>
+            <td>
+              <span class="badge">{{ statusLabel(app.status) }}</span>
+            </td>
             <td>
               <button class="btn-outline" (click)="goToDetail(app._id)">Details</button>
             </td>
@@ -54,5 +58,4 @@
       </tbody>
     </table>
   }
-
 </div>

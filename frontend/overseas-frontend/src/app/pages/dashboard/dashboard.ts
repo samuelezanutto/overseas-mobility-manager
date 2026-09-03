@@ -2,54 +2,58 @@ import { Component, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { AuthService } from '../../core/services/auth.service';
 import { ApplicationService } from '../../core/services/application.service';
+import { periodLabel, statusLabel } from '../../core/utils/labels';
 
 @Component({
-    selector: 'app-dashboard',
-    standalone: true,
-    imports: [],
-    templateUrl: './dashboard.html',
-    styleUrl: './dashboard.css'
+  selector: 'app-dashboard',
+  standalone: true,
+  imports: [],
+  templateUrl: './dashboard.html',
+  styleUrl: './dashboard.css',
 })
 export class Dashboard implements OnInit {
-    user = signal<any>(null);
-    applications = signal<any[]>([]);
-    loading = signal(true);
-    errorMessage = signal('');
+  user = signal<any>(null);
+  applications = signal<any[]>([]);
+  loading = signal(true);
+  errorMessage = signal('');
 
-    constructor(
-        private authService: AuthService,
-        private applicationService: ApplicationService,
-        private router: Router
-    ) {}
+  statusLabel = statusLabel;
+  periodLabel = periodLabel;
 
-    ngOnInit() {
-        this.user.set(this.authService.getUser());
-        this.loadApplications();
-    }
+  constructor(
+    private authService: AuthService,
+    private applicationService: ApplicationService,
+    private router: Router,
+  ) {}
 
-    loadApplications() {
-        this.applicationService.getApplications().subscribe({
-            next: (apps) => {
-                this.applications.set(apps);
-                this.loading.set(false);
-            },
-            error: () => {
-                this.errorMessage.set('Error loading applications');
-                this.loading.set(false);
-            }
-        });
-    }
+  ngOnInit() {
+    this.user.set(this.authService.getUser());
+    this.loadApplications();
+  }
 
-    goToNew() {
-        this.router.navigate(['/applications/new']);
-    }
+  loadApplications() {
+    this.applicationService.getApplications().subscribe({
+      next: (apps) => {
+        this.applications.set(apps);
+        this.loading.set(false);
+      },
+      error: () => {
+        this.errorMessage.set('Error loading applications');
+        this.loading.set(false);
+      },
+    });
+  }
 
-    goToDetail(id: string) {
-        this.router.navigate(['/applications', id]);
-    }
+  goToNew() {
+    this.router.navigate(['/applications/new']);
+  }
 
-    logout() {
-        this.authService.logout();
-        this.router.navigate(['/login']);
-    }
+  goToDetail(id: string) {
+    this.router.navigate(['/applications', id]);
+  }
+
+  logout() {
+    this.authService.logout();
+    this.router.navigate(['/login']);
+  }
 }

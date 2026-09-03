@@ -1,40 +1,46 @@
 <div class="register-card">
-    <h2>Overseas - Student Registration</h2>
-    <p class="hint">Registration is open to students only.</p>
+  <h2>Overseas - Student Registration</h2>
+  <p class="hint">Registration is open to students only.</p>
 
-    @if (errorMessage()) {
-        <div class="message error">{{ errorMessage() }}</div>
-    }
+  @if (errorMessage()) {
+    <div class="message error">{{ errorMessage() }}</div>
+  }
 
-    <form (ngSubmit)="onSubmit()">
-        <div class="grid-2">
-            <div class="field">
-                <label>First name</label>
-                <input type="text" [(ngModel)]="firstName" name="firstName" required />
-            </div>
-            <div class="field">
-                <label>Last name</label>
-                <input type="text" [(ngModel)]="lastName" name="lastName" required />
-            </div>
-        </div>
-        <div class="field">
-            <label>Email</label>
-            <input type="email" [(ngModel)]="email" name="email" required />
-        </div>
-        <div class="field">
-            <label>Matriculation number</label>
-            <input type="text" [(ngModel)]="matriculationNumber" name="matriculationNumber" required />
-        </div>
-        <div class="field">
-            <label>Password</label>
-            <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
-        </div>
-        <div class="field">
-            <label>Confirm password</label>
-            <input type="password" [(ngModel)]="confirmPassword" name="confirmPassword" required minlength="6" />
-        </div>
-        <button type="submit">Register</button>
-    </form>
+  <form (ngSubmit)="onSubmit()">
+    <div class="grid-2">
+      <div class="field">
+        <label>First name</label>
+        <input type="text" [(ngModel)]="firstName" name="firstName" required />
+      </div>
+      <div class="field">
+        <label>Last name</label>
+        <input type="text" [(ngModel)]="lastName" name="lastName" required />
+      </div>
+    </div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" [(ngModel)]="email" name="email" required />
+    </div>
+    <div class="field">
+      <label>Matriculation number</label>
+      <input type="text" [(ngModel)]="matriculationNumber" name="matriculationNumber" required />
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" [(ngModel)]="password" name="password" required minlength="6" />
+    </div>
+    <div class="field">
+      <label>Confirm password</label>
+      <input
+        type="password"
+        [(ngModel)]="confirmPassword"
+        name="confirmPassword"
+        required
+        minlength="6"
+      />
+    </div>
+    <button type="submit">Register</button>
+  </form>
 
-    <p class="switch-link">Already have an account? <a routerLink="/login">Log in</a></p>
+  <p class="switch-link">Already have an account? <a routerLink="/login">Log in</a></p>
 </div>
