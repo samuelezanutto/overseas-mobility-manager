@@ -1,1 +1,106 @@
-<p>application-detail works!</p>
+<div style="max-width: 900px; margin: 2rem auto; padding: 1rem;">
+
+  <button (click)="goBack()">&larr; Torna alla dashboard</button>
+
+  @if (loading()) {
+    <p>Caricamento...</p>
+  }
+
+  @if (errorMessage()) {
+    <p style="color: red;">{{ errorMessage() }}</p>
+  }
+
+  @if (!loading() && application()) {
+    <h2>Domanda di mobilità</h2>
+
+    <table style="margin-bottom: 2rem;">
+      <tr><td style="padding: 4px;"><strong>Anno accademico</strong></td><td style="padding: 4px;">{{ application().academicYear }}</td></tr>
+      <tr><td style="padding: 4px;"><strong>Periodo</strong></td><td style="padding: 4px;">{{ application().mobilityPeriod }}</td></tr>
+      <tr><td style="padding: 4px;"><strong>Status</strong></td><td style="padding: 4px;">{{ application().status }}</td></tr>
+      @if (application().arrivalDate) {
+        <tr><td style="padding: 4px;"><strong>Arrivo</strong></td><td style="padding: 4px;">{{ application().arrivalDate }}</td></tr>
+      }
+      @if (application().departureDate) {
+        <tr><td style="padding: 4px;"><strong>Partenza</strong></td><td style="padding: 4px;">{{ application().departureDate }}</td></tr>
+      }
+    </table>
+
+    <h3>Esami (mapping attivi)</h3>
+    @if (activeMappings().length === 0) {
+      <p>Nessun esame inserito.</p>
+    } @else {
+      <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
+        <thead>
+          <tr style="background: #f0f0f0;">
+            <th style="padding: 8px; text-align: left;">Codice estero</th>
+            <th style="padding: 8px; text-align: left;">Corso estero</th>
+            <th style="padding: 8px; text-align: left;">CFU</th>
+            <th style="padding: 8px; text-align: left;">Codice CF</th>
+            <th style="padding: 8px; text-align: left;">Corso CF</th>
+            <th style="padding: 8px; text-align: left;">CFU</th>
+            <th style="padding: 8px; text-align: left;">Voto</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (m of activeMappings(); track m._id) {
+            <tr style="border-bottom: 1px solid #ddd;">
+              <td style="padding: 8px;">{{ m.foreignCode }}</td>
+              <td style="padding: 8px;">{{ m.foreignName }}</td>
+              <td style="padding: 8px;">{{ m.foreignCredits }}</td>
+              <td style="padding: 8px;">{{ m.cfCode }}</td>
+              <td style="padding: 8px;">{{ m.cfName }}</td>
+              <td style="padding: 8px;">{{ m.cfCredits }}</td>
+              <td style="padding: 8px;">
+                @if (m.result) {
+                  {{ m.result.score }} ({{ m.result.approvalStatus }})
+                } @else {
+                  -
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    <h3>Learning Agreements</h3>
+    @if (application().learningAgreements.length === 0) {
+      <p>Nessun documento caricato.</p>
+    } @else {
+      <ul>
+        @for (la of application().learningAgreements; track la._id) {
+          <li style="margin-bottom: 6px;">
+            {{ la.filePath }} - <strong>{{ la.status }}</strong>
+            @if (la.reason) { <em>({{ la.reason }})</em> }
+          </li>
+        }
+      </ul>
+    }
+
+    <h3>Transcript of Records</h3>
+    @if (application().transcripts.length === 0) {
+      <p>Nessun transcript caricato.</p>
+    } @else {
+      <ul>
+        @for (t of application().transcripts; track t._id) {
+          <li>{{ t.filePath }}</li>
+        }
+      </ul>
+    }
+
+    <h3>Modifiche proposte</h3>
+    @if (application().modifications.length === 0) {
+      <p>Nessuna modifica proposta.</p>
+    } @else {
+      <ul>
+        @for (mod of application().modifications; track mod._id) {
+          <li style="margin-bottom: 6px;">
+            {{ mod.description }} - <strong>{{ mod.status }}</strong>
+            @if (mod.reason) { <em>({{ mod.reason }})</em> }
+          </li>
+        }
+      </ul>
+    }
+  }
+
+</div>
