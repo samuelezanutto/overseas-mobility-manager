@@ -1,21 +1,19 @@
-<div style="max-width: 400px; margin: 100px auto; padding: 2rem;">
+<div class="login-card">
     <h2>Overseas - Login</h2>
 
     @if (errorMessage()) {
-        <div style="color: red; margin-bottom: 1rem;">{{ errorMessage() }}</div>
+        <div class="message error">{{ errorMessage() }}</div>
     }
 
     <form (ngSubmit)="onSubmit()">
-        <div>
-            <label>Email</label><br>
+        <div class="field">
+            <label>Email</label>
             <input type="email" [(ngModel)]="email" name="email" required />
         </div>
-        <br>
-        <div>
-            <label>Password</label><br>
+        <div class="field">
+            <label>Password</label>
             <input type="password" [(ngModel)]="password" name="password" required />
         </div>
-        <br>
         <button type="submit">Log in</button>
     </form>
 </div>

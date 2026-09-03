@@ -1,13 +1,13 @@
-<div style="max-width: 900px; margin: 2rem auto; padding: 1rem;">
+<div class="container">
 
-  <div style="display: flex; justify-content: space-between; align-items: center;">
+  <div class="topbar">
     <div>
       <h2>Overseas Mobility</h2>
       @if (user()) {
         <p>Welcome, <strong>{{ user().firstName }} {{ user().lastName }}</strong> - Role: <strong>{{ user().role }}</strong></p>
       }
     </div>
-    <button (click)="logout()">Logout</button>
+    <button class="btn-outline" (click)="logout()">Logout</button>
   </div>
 
   <hr>
@@ -23,7 +23,7 @@
   }
 
   @if (errorMessage()) {
-    <div style="color: red;">{{ errorMessage() }}</div>
+    <div class="message error">{{ errorMessage() }}</div>
   }
 
   @if (!loading() && applications().length === 0) {
@@ -31,23 +31,23 @@
   }
 
   @if (!loading() && applications().length > 0) {
-    <table style="width: 100%; border-collapse: collapse;">
+    <table>
       <thead>
-        <tr style="background: #f0f0f0;">
-          <th style="padding: 8px; text-align: left;">Year</th>
-          <th style="padding: 8px; text-align: left;">Period</th>
-          <th style="padding: 8px; text-align: left;">Status</th>
-          <th style="padding: 8px; text-align: left;">Actions</th>
+        <tr>
+          <th>Year</th>
+          <th>Period</th>
+          <th>Status</th>
+          <th>Actions</th>
         </tr>
       </thead>
       <tbody>
         @for (app of applications(); track app._id) {
-          <tr style="border-bottom: 1px solid #ddd;">
-            <td style="padding: 8px;">{{ app.academicYear }}</td>
-            <td style="padding: 8px;">{{ app.mobilityPeriod }}</td>
-            <td style="padding: 8px;">{{ app.status }}</td>
-            <td style="padding: 8px;">
-              <button (click)="goToDetail(app._id)">Details</button>
+          <tr>
+            <td>{{ app.academicYear }}</td>
+            <td>{{ app.mobilityPeriod }}</td>
+            <td><span class="badge">{{ app.status }}</span></td>
+            <td>
+              <button class="btn-outline" (click)="goToDetail(app._id)">Details</button>
             </td>
           </tr>
         }

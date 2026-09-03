@@ -8,7 +8,8 @@ import { ApplicationService } from '../../core/services/application.service';
   selector: 'app-application-detail',
   standalone: true,
   imports: [FormsModule],
-  templateUrl: './application-detail.html'
+  templateUrl: './application-detail.html',
+  styleUrl: './application-detail.css'
 })
 export class ApplicationDetail implements OnInit {
   application = signal<any>(null);

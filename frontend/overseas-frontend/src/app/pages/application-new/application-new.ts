@@ -8,7 +8,8 @@ import { InstitutionService } from '../../core/services/institution.service';
     selector: 'app-application-new',
     standalone: true,
     imports: [FormsModule],
-    templateUrl: './application-new.html'
+    templateUrl: './application-new.html',
+    styleUrl: './application-new.css'
 })
 export class ApplicationNew implements OnInit {
     institutions = signal<any[]>([]);

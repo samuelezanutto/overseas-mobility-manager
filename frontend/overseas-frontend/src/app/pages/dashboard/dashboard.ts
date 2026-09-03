@@ -7,7 +7,8 @@ import { ApplicationService } from '../../core/services/application.service';
     selector: 'app-dashboard',
     standalone: true,
     imports: [],
-    templateUrl: './dashboard.html'
+    templateUrl: './dashboard.html',
+    styleUrl: './dashboard.css'
 })
 export class Dashboard implements OnInit {
     user = signal<any>(null);
