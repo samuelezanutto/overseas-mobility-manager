@@ -4,6 +4,7 @@ import { connectDB } from './db';
 import authRoutes from './routes/auth';
 import institutionRoutes from './routes/institutions';
 import applicationRoutes from './routes/applications';
+import userRoutes from './routes/users';
 import { seedInstitutions, seedUsers } from './seed';
 
 const app = express();
@@ -19,7 +20,7 @@ app.use(express.json());
 app.use('/auth', authRoutes);
 app.use('/institutions', institutionRoutes);
 app.use('/applications', applicationRoutes);
-
+app.use('/users', userRoutes);
 app.get('/', (req, res) => {
     res.json({ message: 'Backend is running' });
 });
