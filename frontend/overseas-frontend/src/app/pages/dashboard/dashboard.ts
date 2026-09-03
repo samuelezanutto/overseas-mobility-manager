@@ -39,6 +39,10 @@ export class Dashboard implements OnInit {
         });
     }
 
+    goToNew() {
+        this.router.navigate(['/applications/new']);
+    }
+
     goToDetail(id: string) {
         this.router.navigate(['/applications', id]);
     }
