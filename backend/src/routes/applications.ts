@@ -87,6 +87,12 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        if (application.status !== 'created') {
+            return res.status(400).json({
+                message: 'Exams can only be added before the Learning Agreement is submitted; use a modification request afterwards'
+            });
+        }
+
         application.mappings.push(...mappings);
         await application.save();
 
@@ -128,6 +134,13 @@ router.post('/:id/learning-agreement',
 
             if (application.studentId.toString() !== req.user!.id) {
                 return res.status(403).json({ message: 'Access denied' });
+            }
+
+            const lastLA = application.learningAgreements[application.learningAgreements.length - 1];
+            if (lastLA && lastLA.status !== 'rejected') {
+                return res.status(400).json({
+                    message: 'A Learning Agreement has already been submitted; use a modification request to change it'
+                });
             }
 
             application.learningAgreements.push({
@@ -262,22 +275,30 @@ router.post('/:id/modifications',
             return res.status(400).json({ message: 'A new learning agreement file is required' });
         }
 
-        const { description, proposedMappings } = req.body;
+        const { description, proposedMappings, replacesMappingId } = req.body;
         if (!description) {
             return res.status(400).json({ message: 'Description is required' });
         }
 
         let parsedMappings;
         try {
-            parsedMappings = typeof proposedMappings === 'string'
-                ? JSON.parse(proposedMappings)
-                : proposedMappings;
+            parsedMappings = proposedMappings === undefined
+                ? []
+                : typeof proposedMappings === 'string'
+                    ? JSON.parse(proposedMappings)
+                    : proposedMappings;
         } catch {
             return res.status(400).json({ message: 'Invalid proposedMappings format' });
         }
 
-        if (!Array.isArray(parsedMappings) || parsedMappings.length === 0) {
-            return res.status(400).json({ message: 'proposedMappings must be a non-empty array' });
+        if (!Array.isArray(parsedMappings)) {
+            return res.status(400).json({ message: 'Invalid proposedMappings format' });
+        }
+
+        // a modification either proposes a new/replacement exam, removes an existing
+        // one (replacesMappingId with no proposed mappings), or both
+        if (parsedMappings.length === 0 && !replacesMappingId) {
+            return res.status(400).json({ message: 'Propose a new exam, or select an exam to remove' });
         }
 
         try {
@@ -290,6 +311,17 @@ router.post('/:id/modifications',
                 return res.status(403).json({ message: 'Access denied' });
             }
 
+            // replacesMappingId is optional: set it to replace or remove an existing
+            // active exam, leave it unset when it's a brand new exam
+            if (replacesMappingId) {
+                const target = application.mappings.find(
+                    m => String(m._id) === replacesMappingId && m.isActive
+                );
+                if (!target) {
+                    return res.status(400).json({ message: 'The exam to replace was not found among the active mappings' });
+                }
+            }
+
             application.learningAgreements.push({
                 filePath: req.file.path,
                 uploadedAt: new Date(),
@@ -299,6 +331,7 @@ router.post('/:id/modifications',
             application.modifications.push({
                 description,
                 proposedMappings: parsedMappings,
+                replacesMappingId: replacesMappingId || undefined,
                 status: 'pending'
             });
 
@@ -344,7 +377,14 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
         }
 
         if (decision === 'approved') {
-            application.mappings.forEach(m => { m.isActive = false; });
+            if (modification.replacesMappingId) {
+                const replaced = application.mappings.find(
+                    m => String(m._id) === String(modification.replacesMappingId)
+                );
+                if (replaced) {
+                    replaced.isActive = false;
+                }
+            }
 
             modification.proposedMappings.forEach(pm => {
                 application.mappings.push({

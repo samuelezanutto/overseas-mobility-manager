@@ -100,8 +100,8 @@
       </table>
     }
 
-    <!-- STUDENT: add exam -->
-    @if (isStudent()) {
+    <!-- STUDENT: add exam (only before the Learning Agreement is submitted) -->
+    @if (canAddExam()) {
       <div class="card">
         <h4>Add exam</h4>
         <div class="grid-2">
@@ -169,8 +169,8 @@
       </table>
     }
 
-    <!-- STUDENT: upload LA -->
-    @if (isStudent()) {
+    <!-- STUDENT: upload LA (only before submission, or to fix a rejected one) -->
+    @if (canUploadLA()) {
       <div class="card">
         <h4>Upload Learning Agreement</h4>
         <input type="file" (change)="onLAFileSelected($event)" />
@@ -265,29 +265,60 @@
           />
         </div>
 
-        <p><strong>New proposed exam:</strong></p>
-        <div class="grid-2">
-          <input placeholder="Foreign code" [(ngModel)]="modMapping.foreignCode" name="mfc" />
-          <input
-            placeholder="Foreign course name"
-            [(ngModel)]="modMapping.foreignName"
-            name="mfn"
-          />
-          <input
-            type="number"
-            placeholder="Foreign credits"
-            [(ngModel)]="modMapping.foreignCredits"
-            name="mfcr"
-          />
-          <input placeholder="Ca' Foscari code" [(ngModel)]="modMapping.cfCode" name="mcc" />
-          <input placeholder="Ca' Foscari course name" [(ngModel)]="modMapping.cfName" name="mcn" />
-          <input
-            type="number"
-            placeholder="Ca' Foscari credits"
-            [(ngModel)]="modMapping.cfCredits"
-            name="mccr"
-          />
+        <div class="field">
+          <label>Type of change</label>
+          <select [(ngModel)]="modAction" name="modAction">
+            <option value="add">Add a new exam</option>
+            <option value="replace">Replace an existing exam</option>
+            <option value="delete">Remove an existing exam</option>
+          </select>
         </div>
+
+        @if (modAction !== 'add') {
+          <div class="field">
+            <label>{{ modAction === 'delete' ? 'Exam to remove' : 'Exam to replace' }}</label>
+            <select [(ngModel)]="modReplacesMappingId" name="modReplaces">
+              <option value="">-- Select an exam --</option>
+              @for (m of activeMappings(); track m._id) {
+                <option [value]="m._id">{{ m.foreignCode }} - {{ m.foreignName }}</option>
+              }
+            </select>
+          </div>
+        }
+
+        @if (modAction !== 'delete') {
+          <p>
+            <strong>{{
+              modAction === 'replace' ? 'Replacement exam:' : 'New proposed exam:'
+            }}</strong>
+          </p>
+          <div class="grid-2">
+            <input placeholder="Foreign code" [(ngModel)]="modMapping.foreignCode" name="mfc" />
+            <input
+              placeholder="Foreign course name"
+              [(ngModel)]="modMapping.foreignName"
+              name="mfn"
+            />
+            <input
+              type="number"
+              placeholder="Foreign credits"
+              [(ngModel)]="modMapping.foreignCredits"
+              name="mfcr"
+            />
+            <input placeholder="Ca' Foscari code" [(ngModel)]="modMapping.cfCode" name="mcc" />
+            <input
+              placeholder="Ca' Foscari course name"
+              [(ngModel)]="modMapping.cfName"
+              name="mcn"
+            />
+            <input
+              type="number"
+              placeholder="Ca' Foscari credits"
+              [(ngModel)]="modMapping.cfCredits"
+              name="mccr"
+            />
+          </div>
+        }
 
         <div class="field">
           <label>New Learning Agreement</label>

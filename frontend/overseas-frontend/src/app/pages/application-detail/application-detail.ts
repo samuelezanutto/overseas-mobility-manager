@@ -69,6 +69,17 @@ export class ApplicationDetail implements OnInit {
     return app ? app.mappings.filter((m: any) => m.isActive) : [];
   }
 
+  canAddExam() {
+    return this.isStudent() && this.application()?.status === 'created';
+  }
+
+  canUploadLA() {
+    if (!this.isStudent()) return false;
+    const agreements = this.application()?.learningAgreements ?? [];
+    if (agreements.length === 0) return true;
+    return agreements[agreements.length - 1].status === 'rejected';
+  }
+
   isStudent() {
     return this.userRole() === 'student';
   }
@@ -258,6 +269,7 @@ export class ApplicationDetail implements OnInit {
   }
 
   modDescription = '';
+  modAction: 'add' | 'replace' | 'delete' = 'add';
   modMapping = {
     foreignCode: '',
     foreignName: '',
@@ -266,6 +278,7 @@ export class ApplicationDetail implements OnInit {
     cfName: '',
     cfCredits: 0,
   };
+  modReplacesMappingId = '';
   selectedModFile: File | null = null;
 
   onModFileSelected(event: any) {
@@ -281,17 +294,25 @@ export class ApplicationDetail implements OnInit {
       this.errorMessage.set('Upload the new Learning Agreement');
       return;
     }
-    if (!this.modMapping.foreignCode || !this.modMapping.cfCode) {
+    if (this.modAction !== 'add' && !this.modReplacesMappingId) {
+      this.errorMessage.set('Select which exam this change applies to');
+      return;
+    }
+    if (this.modAction !== 'delete' && (!this.modMapping.foreignCode || !this.modMapping.cfCode)) {
       this.errorMessage.set('Fill in the new exam data');
       return;
     }
+
+    const proposedMappings = this.modAction === 'delete' ? [] : [this.modMapping];
+    const replacesMappingId = this.modAction === 'add' ? undefined : this.modReplacesMappingId;
 
     this.applicationService
       .proposeModification(
         this.applicationId,
         this.modDescription,
-        [this.modMapping],
+        proposedMappings,
         this.selectedModFile,
+        replacesMappingId,
       )
       .subscribe({
         next: (app) => {
@@ -299,6 +320,7 @@ export class ApplicationDetail implements OnInit {
           this.successMessage.set('Modification proposed successfully');
           this.errorMessage.set('');
           this.modDescription = '';
+          this.modAction = 'add';
           this.modMapping = {
             foreignCode: '',
             foreignName: '',
@@ -307,6 +329,7 @@ export class ApplicationDetail implements OnInit {
             cfName: '',
             cfCredits: 0,
           };
+          this.modReplacesMappingId = '';
           this.selectedModFile = null;
         },
         error: (err) =>

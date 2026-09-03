@@ -56,6 +56,9 @@ export interface IModification {
     decisionDate?: Date;
     reason?: string;
     proposedMappings: IExamMapping[];
+    // active mapping this modification replaces once approved; unset means the
+    // proposed mappings are added on top of the existing ones
+    replacesMappingId?: Types.ObjectId;
 }
 
 export interface IMobilityApplication {
@@ -122,7 +125,8 @@ const modificationSchema = new Schema<IModification>({
     },
     decisionDate: { type: Date },
     reason: { type: String },
-    proposedMappings: [examMappingSchema]
+    proposedMappings: [examMappingSchema],
+    replacesMappingId: { type: Schema.Types.ObjectId }
 });
 
 // ─── Main Schema ────────────────────────────────────────────────────────

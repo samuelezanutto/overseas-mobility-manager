@@ -50,11 +50,20 @@ export class ApplicationService {
     });
   }
 
-  proposeModification(id: string, description: string, proposedMappings: any[], file: File) {
+  proposeModification(
+    id: string,
+    description: string,
+    proposedMappings: any[],
+    file: File,
+    replacesMappingId?: string,
+  ) {
     const formData = new FormData();
     formData.append('file', file);
     formData.append('description', description);
     formData.append('proposedMappings', JSON.stringify(proposedMappings));
+    if (replacesMappingId) {
+      formData.append('replacesMappingId', replacesMappingId);
+    }
     return this.http.post<any>(`${this.apiUrl}/applications/${id}/modifications`, formData);
   }
 
