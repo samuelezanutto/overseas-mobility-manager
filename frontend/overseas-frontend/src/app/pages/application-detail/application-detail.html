@@ -95,7 +95,9 @@
         <tbody>
           @for (la of application().learningAgreements; track la._id) {
             <tr style="border-bottom: 1px solid #ddd;">
-              <td style="padding: 8px;">{{ la.filePath }}</td>
+              <td style="padding: 8px;">
+                <a href="javascript:void(0)" (click)="downloadFile(la.filePath)">{{ fileName(la.filePath) }}</a>
+              </td>
               <td style="padding: 8px;"><strong>{{ la.status }}</strong></td>
               <td style="padding: 8px;">@if (la.reason) { <em>{{ la.reason }}</em> }</td>
               @if (isLecturer() && la.status === 'pending') {
@@ -136,7 +138,7 @@
     } @else {
       <ul>
         @for (t of application().transcripts; track t._id) {
-          <li>{{ t.filePath }}</li>
+          <li><a href="javascript:void(0)" (click)="downloadFile(t.filePath)">{{ fileName(t.filePath) }}</a></li>
         }
       </ul>
     }
