@@ -5,10 +5,10 @@ import { AuthService } from '../../core/services/auth.service';
 import { ApplicationService } from '../../core/services/application.service';
 
 @Component({
-    selector: 'app-application-detail',
-    standalone: true,
-    imports: [FormsModule],
-    templateUrl: './application-detail.html'
+  selector: 'app-application-detail',
+  standalone: true,
+  imports: [FormsModule],
+  templateUrl: './application-detail.html'
 })
 export class ApplicationDetail implements OnInit {
   application = signal<any>(null);
@@ -230,6 +230,56 @@ export class ApplicationDetail implements OnInit {
 
   fileName(filePath: string) {
       return filePath.split('/').pop();
+  }
+
+  modDescription = '';
+  modMapping = {
+    foreignCode: '',
+    foreignName: '',
+    foreignCredits: 0,
+    cfCode: '',
+    cfName: '',
+    cfCredits: 0
+  };
+  selectedModFile: File | null = null;
+
+  onModFileSelected(event: any) {
+    this.selectedModFile = event.target.files[0] ?? null;
+  }
+
+  proposeModification() {
+    if (!this.modDescription) {
+        this.errorMessage.set('Inserisci una descrizione della modifica');
+        return;
+    }
+    if (!this.selectedModFile) {
+        this.errorMessage.set('Carica il nuovo Learning Agreement');
+        return;
+    }
+    if (!this.modMapping.foreignCode || !this.modMapping.cfCode) {
+        this.errorMessage.set('Compila i dati del nuovo esame');
+        return;
+    }
+
+    this.applicationService.proposeModification(
+      this.applicationId,
+      this.modDescription,
+      [this.modMapping],
+      this.selectedModFile
+    ).subscribe({
+        next: (app) => {
+          this.application.set(app);
+          this.successMessage.set('Modifica proposta con successo');
+          this.errorMessage.set('');
+          this.modDescription = '';
+          this.modMapping = {
+            foreignCode: '', foreignName: '', foreignCredits: 0,
+            cfCode: '', cfName: '', cfCredits: 0
+          };
+          this.selectedModFile = null;
+        },
+        error: () => this.errorMessage.set('Errore nella proposta di modifica')
+    });
   }
 
   goBack() {

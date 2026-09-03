@@ -175,6 +175,36 @@
       </table>
     }
 
+  @if (isStudent()) {
+    <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
+      <h4>Proponi modifica al piano esami</h4>
+      
+      <div style="margin-bottom: 8px;">
+        <label>Descrizione della modifica</label><br>
+        <input [(ngModel)]="modDescription" name="modDesc" style="width: 100%; padding: 6px;" 
+              placeholder="Es. Il corso non è più disponibile, sostituito con...">
+      </div>
+
+      <p style="margin: 8px 0 4px 0;"><strong>Nuovo esame proposto:</strong></p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+        <input placeholder="Codice estero" [(ngModel)]="modMapping.foreignCode" name="mfc">
+        <input placeholder="Nome corso estero" [(ngModel)]="modMapping.foreignName" name="mfn">
+        <input type="number" placeholder="CFU estero" [(ngModel)]="modMapping.foreignCredits" name="mfcr">
+        <input placeholder="Codice Ca' Foscari" [(ngModel)]="modMapping.cfCode" name="mcc">
+        <input placeholder="Nome corso Ca' Foscari" [(ngModel)]="modMapping.cfName" name="mcn">
+        <input type="number" placeholder="CFU Ca' Foscari" [(ngModel)]="modMapping.cfCredits" name="mccr">
+      </div>
+
+      <div style="margin-top: 8px;">
+        <label>Nuovo Learning Agreement</label><br>
+        <input type="file" (change)="onModFileSelected($event)">
+      </div>
+
+      <br>
+      <button (click)="proposeModification()">Proponi modifica</button>
+    </div>
+  }
+
     <!-- STAFF -->
     @if (isStaff()) {
       <div style="border: 2px solid #333; padding: 1rem; margin-top: 2rem;">
