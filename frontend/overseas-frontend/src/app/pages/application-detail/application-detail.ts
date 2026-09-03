@@ -56,8 +56,8 @@ export class ApplicationDetail implements OnInit {
               this.application.set(app);
               this.loading.set(false);
           },
-          error: () => {
-              this.errorMessage.set('Error loading the application');
+          error: (err) => {
+              this.errorMessage.set(err.error?.message ?? 'Error loading the application');
               this.loading.set(false);
           }
       });
@@ -88,7 +88,7 @@ export class ApplicationDetail implements OnInit {
                   cfCode: '', cfName: '', cfCredits: 0
               };
           },
-          error: () => this.errorMessage.set('Error adding the exam')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error adding the exam')
       });
   }
 
@@ -109,7 +109,7 @@ export class ApplicationDetail implements OnInit {
               this.errorMessage.set('');
               this.selectedLAFile = null;
           },
-          error: () => this.errorMessage.set('Error uploading the file')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error uploading the file')
       });
   }
 
@@ -120,12 +120,14 @@ export class ApplicationDetail implements OnInit {
       }
 
       this.applicationService.setDates(this.applicationId, this.arrivalDate, this.departureDate).subscribe({
-          next: (app) => {
-              this.application.set(app);
-              this.successMessage.set('Dates saved');
-              this.errorMessage.set('');
-          },
-          error: () => this.errorMessage.set('Error saving the dates')
+            next: (app) => {
+                this.application.set(app);
+                this.successMessage.set('Dates saved');
+                this.errorMessage.set('');
+            },
+            error: (err) => this.errorMessage.set(
+                err.error?.message ?? 'Error saving the dates'
+            )
       });
   }
 
@@ -146,7 +148,7 @@ export class ApplicationDetail implements OnInit {
               this.errorMessage.set('');
               this.selectedTranscriptFile = null;
           },
-          error: () => this.errorMessage.set('Error uploading the transcript')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error uploading the transcript')
       });
   }
 
@@ -161,7 +163,7 @@ export class ApplicationDetail implements OnInit {
               this.successMessage.set(`Learning Agreement ${decision}`);
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Error evaluating')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error evaluating')
       });
   }
 
@@ -176,7 +178,7 @@ export class ApplicationDetail implements OnInit {
               this.successMessage.set(`Modification ${decision}`);
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Error evaluating the modification')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error evaluating the modification')
       });
   }
 
@@ -193,7 +195,7 @@ export class ApplicationDetail implements OnInit {
               this.successMessage.set('Grade recorded');
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Error recording the grade')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error recording the grade')
       });
   }
 
@@ -279,7 +281,7 @@ export class ApplicationDetail implements OnInit {
           };
           this.selectedModFile = null;
         },
-        error: () => this.errorMessage.set('Error proposing the modification')
+        error: (err) => this.errorMessage.set(err.error?.message ?? 'Error proposing the modification')
     });
   }
 

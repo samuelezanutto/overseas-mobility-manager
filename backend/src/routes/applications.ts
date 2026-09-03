@@ -239,6 +239,12 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        if (application.status !== 'pre_departure_completed') {
+            return res.status(400).json({
+                message: 'Pre-departure phase must be completed before setting mobility dates'
+            });
+        }
+
         application.arrivalDate = new Date(arrivalDate);
         application.departureDate = new Date(departureDate);
         application.status = 'mobility_in_progress';
