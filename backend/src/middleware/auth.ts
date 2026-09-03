@@ -1,7 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'development_secret';
+import { JWT_SECRET } from '../config';
 
 declare global {
     namespace Express {

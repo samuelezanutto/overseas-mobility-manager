@@ -2,9 +2,9 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { User } from '../models/User';
+import { JWT_SECRET, JWT_EXPIRES_IN } from '../config';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'development_secret';
 
 // POST /auth/register
 router.post('/register', async (req: Request, res: Response) => {
@@ -12,6 +12,11 @@ router.post('/register', async (req: Request, res: Response) => {
 
     if (!email || !password || !firstName || !lastName || !role) {
         return res.status(400).json({ message: 'Missing required fields' });
+    }
+
+    const allowedRoles = ['student', 'lecturer', 'staff'];
+    if (!allowedRoles.includes(role)) {
+        return res.status(400).json({ message: 'Invalid role' });
     }
 
     try {
@@ -35,7 +40,7 @@ router.post('/register', async (req: Request, res: Response) => {
         const token = jwt.sign(
             { id: user._id, role: user.role }, 
             JWT_SECRET, 
-            { expiresIn: '7d' }
+            { expiresIn: JWT_EXPIRES_IN }
         );
 
         res.status(201).json({ token });
@@ -66,10 +71,10 @@ router.post('/login', async (req: Request, res: Response) => {
         const token = jwt.sign(
             { id: user._id, role: user.role }, 
             JWT_SECRET, 
-            { expiresIn: '7d' }
+            { expiresIn: JWT_EXPIRES_IN }
         );
 
-        res.json({ 
+        res.status(201).json({ 
             token, 
             user: {
                 id: user._id,
