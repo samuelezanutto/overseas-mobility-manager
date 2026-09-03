@@ -23,6 +23,19 @@ export class AuthService {
             );
     }
 
+    register(data: { email: string, password: string, firstName: string, lastName: string, matriculationNumber: string }) {
+        // public registration is student-only; the backend forces role: 'student'
+        return this.http.post<{ token: string, user: any }>
+            (`${this.apiUrl}/auth/register`, data)
+            .pipe(
+                tap(response => {
+                    // log the student in right away
+                    localStorage.setItem('token', response.token);
+                    localStorage.setItem('user', JSON.stringify(response.user));
+                })
+            );
+    }
+
     logout() {
         localStorage.removeItem('token');
         localStorage.removeItem('user');

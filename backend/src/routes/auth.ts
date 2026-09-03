@@ -7,16 +7,14 @@ import { JWT_SECRET, JWT_EXPIRES_IN } from '../config';
 const router = Router();
 
 // POST /auth/register
+// Public self-registration is restricted to students: lecturer/staff accounts
+// are provisioned separately (see seed.ts) so this endpoint never trusts a
+// client-supplied role.
 router.post('/register', async (req: Request, res: Response) => {
-    const { email, password, firstName, lastName, role, matriculationNumber } = req.body;
+    const { email, password, firstName, lastName, matriculationNumber } = req.body;
 
-    if (!email || !password || !firstName || !lastName || !role) {
+    if (!email || !password || !firstName || !lastName || !matriculationNumber) {
         return res.status(400).json({ message: 'Missing required fields' });
-    }
-
-    const allowedRoles = ['student', 'lecturer', 'staff'];
-    if (!allowedRoles.includes(role)) {
-        return res.status(400).json({ message: 'Invalid role' });
     }
 
     try {
@@ -27,23 +25,33 @@ router.post('/register', async (req: Request, res: Response) => {
 
         const passwordHash = await bcrypt.hash(password, 10);
 
-        const user = new User({ 
-            email, 
-            passwordHash,      
-            firstName, 
-            lastName, 
-            role, 
-            matriculationNumber 
+        const user = new User({
+            email,
+            passwordHash,
+            firstName,
+            lastName,
+            role: 'student',
+            matriculationNumber
         });
         await user.save();
 
         const token = jwt.sign(
-            { id: user._id, role: user.role }, 
-            JWT_SECRET, 
+            { id: user._id, role: user.role },
+            JWT_SECRET,
             { expiresIn: JWT_EXPIRES_IN }
         );
 
-        res.status(201).json({ token });
+        res.status(201).json({
+            token,
+            user: {
+                id: user._id,
+                email: user.email,
+                role: user.role,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                matriculationNumber: user.matriculationNumber
+            }
+        });
     } catch (error) {
         res.status(500).json({ message: 'Error creating user' });
     }

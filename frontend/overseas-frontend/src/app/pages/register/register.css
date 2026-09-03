@@ -1,10 +1,16 @@
-.login-card {
+.register-card {
   max-width: 400px;
-  margin: 100px auto;
+  margin: 60px auto;
   padding: 2rem;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius);
+}
+
+.hint {
+  margin-top: -0.5rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
 }
 
 .switch-link {
