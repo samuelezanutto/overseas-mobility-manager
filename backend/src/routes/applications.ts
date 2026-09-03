@@ -475,4 +475,32 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
     }
 });
 
+// GET /applications/:id/files/:filename - scarica un file
+router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Response) => {
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        const { role, id } = req.user!;
+        const isOwner = application.studentId.toString() === id;
+        const isReferent = application.lecturerId.toString() === id;
+        
+        if (role !== 'staff' && !isOwner && !isReferent) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        const filename = req.params.filename;
+        if (typeof filename !== 'string') {
+            return res.status(400).json({ message: 'Invalid filename' });
+        }
+
+        const filePath = path.resolve('uploads', filename);
+        res.sendFile(filePath);
+    } catch (error) {
+        res.status(500).json({ message: 'Error downloading file' });
+    }
+});
+
 export default router;
