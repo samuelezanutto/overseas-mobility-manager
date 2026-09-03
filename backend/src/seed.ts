@@ -15,7 +15,7 @@ export const seedInstitutions = async () => {
             { name: 'University of São Paulo', country: 'Brazil', city: 'São Paulo' },
             { name: 'Seoul National University', country: 'South Korea', city: 'Seoul' },
         ]);
-        console.log('Istituzioni caricate');
+        console.log('Institutions loaded');
     }
 };
 
@@ -71,12 +71,12 @@ export const seedUsers = async () => {
                 role: 'staff',
             },
         ]);
-        console.log('Utenti caricati');
+        console.log('Users loaded');
         console.log('─────────────────────────────────────────');
-        console.log('Credenziali di test (password: password123)');
-        console.log('Studente 1: mario.rossi@stud.unive.it');
-        console.log('Studente 2: giulia.bianchi@stud.unive.it');
-        console.log('Studente 3: luca.ferrari@stud.unive.it');
+        console.log('Test credentials (password: password123)');
+        console.log('Student 1: mario.rossi@stud.unive.it');
+        console.log('Student 2: giulia.bianchi@stud.unive.it');
+        console.log('Student 3: luca.ferrari@stud.unive.it');
         console.log('Lecturer 1: prof.bergamasco@unive.it');
         console.log('Lecturer 2: prof.focardi@unive.it');
         console.log('Staff:      ufficio.overseas@unive.it');

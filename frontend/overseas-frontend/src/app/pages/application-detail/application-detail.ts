@@ -56,7 +56,7 @@ export class ApplicationDetail implements OnInit {
               this.loading.set(false);
           },
           error: () => {
-              this.errorMessage.set('Errore nel caricamento della domanda');
+              this.errorMessage.set('Error loading the application');
               this.loading.set(false);
           }
       });
@@ -73,21 +73,21 @@ export class ApplicationDetail implements OnInit {
 
   addMapping() {
       if (!this.newMapping.foreignCode || !this.newMapping.cfCode) {
-          this.errorMessage.set('Compila almeno i codici dei corsi');
+          this.errorMessage.set('Please fill in at least the course codes');
           return;
       }
 
       this.applicationService.addMappings(this.applicationId, [this.newMapping]).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Esame aggiunto');
+              this.successMessage.set('Exam added');
               this.errorMessage.set('');
               this.newMapping = {
                   foreignCode: '', foreignName: '', foreignCredits: 0,
                   cfCode: '', cfName: '', cfCredits: 0
               };
           },
-          error: () => this.errorMessage.set('Errore nell\'aggiunta dell\'esame')
+          error: () => this.errorMessage.set('Error adding the exam')
       });
   }
 
@@ -97,34 +97,34 @@ export class ApplicationDetail implements OnInit {
 
   uploadLA() {
       if (!this.selectedLAFile) {
-          this.errorMessage.set('Seleziona un file');
+          this.errorMessage.set('Select a file');
           return;
       }
 
       this.applicationService.uploadLearningAgreement(this.applicationId, this.selectedLAFile).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Learning Agreement caricato');
+              this.successMessage.set('Learning Agreement uploaded');
               this.errorMessage.set('');
               this.selectedLAFile = null;
           },
-          error: () => this.errorMessage.set('Errore nel caricamento del file')
+          error: () => this.errorMessage.set('Error uploading the file')
       });
   }
 
   saveDates() {
       if (!this.arrivalDate || !this.departureDate) {
-          this.errorMessage.set('Inserisci entrambe le date');
+          this.errorMessage.set('Enter both dates');
           return;
       }
 
       this.applicationService.setDates(this.applicationId, this.arrivalDate, this.departureDate).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Date salvate');
+              this.successMessage.set('Dates saved');
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Errore nel salvataggio delle date')
+          error: () => this.errorMessage.set('Error saving the dates')
       });
   }
 
@@ -134,24 +134,24 @@ export class ApplicationDetail implements OnInit {
 
   uploadTranscript() {
       if (!this.selectedTranscriptFile) {
-          this.errorMessage.set('Seleziona un file');
+          this.errorMessage.set('Select a file');
           return;
       }
 
       this.applicationService.uploadTranscript(this.applicationId, this.selectedTranscriptFile).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Transcript caricato');
+              this.successMessage.set('Transcript uploaded');
               this.errorMessage.set('');
               this.selectedTranscriptFile = null;
           },
-          error: () => this.errorMessage.set('Errore nel caricamento del transcript')
+          error: () => this.errorMessage.set('Error uploading the transcript')
       });
   }
 
   evaluateLA(agreementId: string, decision: string) {
       const reason = decision === 'rejected'
-          ? prompt('Motivo del rifiuto:') ?? ''
+          ? prompt('Reason for rejection:') ?? ''
           : '';
 
       this.applicationService.evaluateLearningAgreement(this.applicationId, agreementId, decision, reason).subscribe({
@@ -160,39 +160,39 @@ export class ApplicationDetail implements OnInit {
               this.successMessage.set(`Learning Agreement ${decision}`);
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Errore nella valutazione')
+          error: () => this.errorMessage.set('Error evaluating')
       });
   }
 
   evaluateMod(modificationId: string, decision: string) {
       const reason = decision === 'rejected'
-          ? prompt('Motivo del rifiuto:') ?? ''
+          ? prompt('Reason for rejection:') ?? ''
           : '';
 
       this.applicationService.evaluateModification(this.applicationId, modificationId, decision, reason).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set(`Modifica ${decision}`);
+              this.successMessage.set(`Modification ${decision}`);
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Errore nella valutazione della modifica')
+          error: () => this.errorMessage.set('Error evaluating the modification')
       });
   }
 
   setResult(mappingId: string) {
-      const score = prompt('Voto ottenuto (es. 28, 30L):');
+      const score = prompt('Grade obtained (e.g. 28, 30L):');
       if (!score) return;
 
-      const examDate = prompt('Data esame (YYYY-MM-DD):');
+      const examDate = prompt('Exam date (YYYY-MM-DD):');
       if (!examDate) return;
 
       this.applicationService.setExamResult(this.applicationId, mappingId, score, examDate).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Voto registrato');
+              this.successMessage.set('Grade recorded');
               this.errorMessage.set('');
           },
-          error: () => this.errorMessage.set('Errore nella registrazione del voto')
+          error: () => this.errorMessage.set('Error recording the grade')
       });
   }
 
@@ -200,10 +200,10 @@ export class ApplicationDetail implements OnInit {
       this.applicationService.setPreDeparture(this.applicationId).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Fase pre-partenza completata');
+              this.successMessage.set('Pre-departure phase completed');
               this.errorMessage.set('');
           },
-          error: (err) => this.errorMessage.set(err.error?.message ?? 'Errore')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error')
       });
   }
 
@@ -211,10 +211,10 @@ export class ApplicationDetail implements OnInit {
       this.applicationService.closeApplication(this.applicationId).subscribe({
           next: (app) => {
               this.application.set(app);
-              this.successMessage.set('Domanda chiusa');
+              this.successMessage.set('Application closed');
               this.errorMessage.set('');
           },
-          error: (err) => this.errorMessage.set(err.error?.message ?? 'Errore')
+          error: (err) => this.errorMessage.set(err.error?.message ?? 'Error')
       });
   }
 
@@ -224,7 +224,7 @@ export class ApplicationDetail implements OnInit {
             const url = window.URL.createObjectURL(blob);
             window.open(url, '_blank');
         },
-        error: () => this.errorMessage.set('Errore nel download del file')
+        error: () => this.errorMessage.set('Error downloading the file')
     });
   }
 
@@ -249,15 +249,15 @@ export class ApplicationDetail implements OnInit {
 
   proposeModification() {
     if (!this.modDescription) {
-        this.errorMessage.set('Inserisci una descrizione della modifica');
+        this.errorMessage.set('Enter a description of the change');
         return;
     }
     if (!this.selectedModFile) {
-        this.errorMessage.set('Carica il nuovo Learning Agreement');
+        this.errorMessage.set('Upload the new Learning Agreement');
         return;
     }
     if (!this.modMapping.foreignCode || !this.modMapping.cfCode) {
-        this.errorMessage.set('Compila i dati del nuovo esame');
+        this.errorMessage.set('Fill in the new exam data');
         return;
     }
 
@@ -269,7 +269,7 @@ export class ApplicationDetail implements OnInit {
     ).subscribe({
         next: (app) => {
           this.application.set(app);
-          this.successMessage.set('Modifica proposta con successo');
+          this.successMessage.set('Modification proposed successfully');
           this.errorMessage.set('');
           this.modDescription = '';
           this.modMapping = {
@@ -278,7 +278,7 @@ export class ApplicationDetail implements OnInit {
           };
           this.selectedModFile = null;
         },
-        error: () => this.errorMessage.set('Errore nella proposta di modifica')
+        error: () => this.errorMessage.set('Error proposing the modification')
     });
   }
 

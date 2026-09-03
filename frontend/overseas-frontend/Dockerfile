@@ -11,7 +11,7 @@ COPY . .
 RUN npm run build
 
 
-# ---- Stage 2: serve con Nginx ----
+# ---- Stage 2: serve with Nginx ----
 FROM nginx:alpine AS runner
 
 COPY --from=builder /app/dist/overseas-frontend/browser /usr/share/nginx/html

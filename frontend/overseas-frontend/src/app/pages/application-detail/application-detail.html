@@ -1,8 +1,8 @@
 <div style="max-width: 900px; margin: 2rem auto; padding: 1rem;">
 
-  <button (click)="goBack()">&larr; Torna alla dashboard</button>
+  <button (click)="goBack()">&larr; Back to dashboard</button>
 
-  @if (loading()) { <p>Caricamento...</p> }
+  @if (loading()) { <p>Loading...</p> }
 
   @if (errorMessage()) {
     <p style="color: red; padding: 8px; background: #ffe6e6;">{{ errorMessage() }}</p>
@@ -12,36 +12,36 @@
   }
 
   @if (!loading() && application()) {
-    <h2>Domanda di mobilità</h2>
+    <h2>Mobility application</h2>
 
     <table style="margin-bottom: 2rem;">
-      <tr><td style="padding: 4px;"><strong>Anno accademico</strong></td><td style="padding: 4px;">{{ application().academicYear }}</td></tr>
-      <tr><td style="padding: 4px;"><strong>Periodo</strong></td><td style="padding: 4px;">{{ application().mobilityPeriod }}</td></tr>
+      <tr><td style="padding: 4px;"><strong>Academic year</strong></td><td style="padding: 4px;">{{ application().academicYear }}</td></tr>
+      <tr><td style="padding: 4px;"><strong>Period</strong></td><td style="padding: 4px;">{{ application().mobilityPeriod }}</td></tr>
       <tr><td style="padding: 4px;"><strong>Status</strong></td><td style="padding: 4px;">{{ application().status }}</td></tr>
       @if (application().arrivalDate) {
-        <tr><td style="padding: 4px;"><strong>Arrivo</strong></td><td style="padding: 4px;">{{ application().arrivalDate }}</td></tr>
+        <tr><td style="padding: 4px;"><strong>Arrival</strong></td><td style="padding: 4px;">{{ application().arrivalDate }}</td></tr>
       }
       @if (application().departureDate) {
-        <tr><td style="padding: 4px;"><strong>Partenza</strong></td><td style="padding: 4px;">{{ application().departureDate }}</td></tr>
+        <tr><td style="padding: 4px;"><strong>Departure</strong></td><td style="padding: 4px;">{{ application().departureDate }}</td></tr>
       }
     </table>
 
-    <!-- ESAMI -->
-    <h3>Esami (mapping attivi)</h3>
+    <!-- EXAMS -->
+    <h3>Exams (active mappings)</h3>
     @if (activeMappings().length === 0) {
-      <p>Nessun esame inserito.</p>
+      <p>No exams added.</p>
     } @else {
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
         <thead>
           <tr style="background: #f0f0f0;">
-            <th style="padding: 8px; text-align: left;">Cod. estero</th>
-            <th style="padding: 8px; text-align: left;">Corso estero</th>
-            <th style="padding: 8px; text-align: left;">CFU</th>
-            <th style="padding: 8px; text-align: left;">Cod. CF</th>
-            <th style="padding: 8px; text-align: left;">Corso CF</th>
-            <th style="padding: 8px; text-align: left;">CFU</th>
-            <th style="padding: 8px; text-align: left;">Voto</th>
-            @if (isLecturer()) { <th style="padding: 8px;">Azioni</th> }
+            <th style="padding: 8px; text-align: left;">Foreign code</th>
+            <th style="padding: 8px; text-align: left;">Foreign course</th>
+            <th style="padding: 8px; text-align: left;">Credits</th>
+            <th style="padding: 8px; text-align: left;">CF code</th>
+            <th style="padding: 8px; text-align: left;">CF course</th>
+            <th style="padding: 8px; text-align: left;">Credits</th>
+            <th style="padding: 8px; text-align: left;">Grade</th>
+            @if (isLecturer()) { <th style="padding: 8px;">Actions</th> }
           </tr>
         </thead>
         <tbody>
@@ -59,7 +59,7 @@
               @if (isLecturer()) {
                 <td style="padding: 8px;">
                   @if (!m.result) {
-                    <button (click)="setResult(m._id)">Registra voto</button>
+                    <button (click)="setResult(m._id)">Record grade</button>
                   }
                 </td>
               }
@@ -69,27 +69,27 @@
       </table>
     }
 
-    <!-- STUDENTE: aggiungi esame -->
+    <!-- STUDENT: add exam -->
     @if (isStudent()) {
       <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
-        <h4>Aggiungi esame</h4>
+        <h4>Add exam</h4>
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-          <input placeholder="Codice estero" [(ngModel)]="newMapping.foreignCode" name="fc">
-          <input placeholder="Nome corso estero" [(ngModel)]="newMapping.foreignName" name="fn">
-          <input type="number" placeholder="CFU estero" [(ngModel)]="newMapping.foreignCredits" name="fcr">
-          <input placeholder="Codice Ca' Foscari" [(ngModel)]="newMapping.cfCode" name="cc">
-          <input placeholder="Nome corso Ca' Foscari" [(ngModel)]="newMapping.cfName" name="cn">
-          <input type="number" placeholder="CFU Ca' Foscari" [(ngModel)]="newMapping.cfCredits" name="ccr">
+          <input placeholder="Foreign code" [(ngModel)]="newMapping.foreignCode" name="fc">
+          <input placeholder="Foreign course name" [(ngModel)]="newMapping.foreignName" name="fn">
+          <input type="number" placeholder="Foreign credits" [(ngModel)]="newMapping.foreignCredits" name="fcr">
+          <input placeholder="Ca' Foscari code" [(ngModel)]="newMapping.cfCode" name="cc">
+          <input placeholder="Ca' Foscari course name" [(ngModel)]="newMapping.cfName" name="cn">
+          <input type="number" placeholder="Ca' Foscari credits" [(ngModel)]="newMapping.cfCredits" name="ccr">
         </div>
         <br>
-        <button (click)="addMapping()">Aggiungi</button>
+        <button (click)="addMapping()">Add</button>
       </div>
     }
 
     <!-- LEARNING AGREEMENTS -->
     <h3>Learning Agreements</h3>
     @if (application().learningAgreements.length === 0) {
-      <p>Nessun documento caricato.</p>
+      <p>No documents uploaded.</p>
     } @else {
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 1rem;">
         <tbody>
@@ -102,8 +102,8 @@
               <td style="padding: 8px;">@if (la.reason) { <em>{{ la.reason }}</em> }</td>
               @if (isLecturer() && la.status === 'pending') {
                 <td style="padding: 8px;">
-                  <button (click)="evaluateLA(la._id, 'approved')">Approva</button>
-                  <button (click)="evaluateLA(la._id, 'rejected')">Rifiuta</button>
+                  <button (click)="evaluateLA(la._id, 'approved')">Approve</button>
+                  <button (click)="evaluateLA(la._id, 'rejected')">Reject</button>
                 </td>
               }
             </tr>
@@ -112,29 +112,29 @@
       </table>
     }
 
-    <!-- STUDENTE: carica LA -->
+    <!-- STUDENT: upload LA -->
     @if (isStudent()) {
       <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
-        <h4>Carica Learning Agreement</h4>
+        <h4>Upload Learning Agreement</h4>
         <input type="file" (change)="onLAFileSelected($event)">
-        <button (click)="uploadLA()">Carica</button>
+        <button (click)="uploadLA()">Upload</button>
       </div>
     }
 
-    <!-- STUDENTE: date -->
+    <!-- STUDENT: dates -->
     @if (isStudent()) {
       <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
-        <h4>Date di mobilità</h4>
-        <label>Arrivo: <input type="date" [(ngModel)]="arrivalDate" name="ad"></label>
-        <label style="margin-left: 1rem;">Partenza: <input type="date" [(ngModel)]="departureDate" name="dd"></label>
-        <button (click)="saveDates()" style="margin-left: 1rem;">Salva date</button>
+        <h4>Mobility dates</h4>
+        <label>Arrival: <input type="date" [(ngModel)]="arrivalDate" name="ad"></label>
+        <label style="margin-left: 1rem;">Departure: <input type="date" [(ngModel)]="departureDate" name="dd"></label>
+        <button (click)="saveDates()" style="margin-left: 1rem;">Save dates</button>
       </div>
     }
 
     <!-- TRANSCRIPT -->
     <h3>Transcript of Records</h3>
     @if (application().transcripts.length === 0) {
-      <p>Nessun transcript caricato.</p>
+      <p>No transcript uploaded.</p>
     } @else {
       <ul>
         @for (t of application().transcripts; track t._id) {
@@ -145,16 +145,16 @@
 
     @if (isStudent()) {
       <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
-        <h4>Carica Transcript of Records</h4>
+        <h4>Upload Transcript of Records</h4>
         <input type="file" (change)="onTranscriptFileSelected($event)">
-        <button (click)="uploadTranscript()">Carica</button>
+        <button (click)="uploadTranscript()">Upload</button>
       </div>
     }
 
-    <!-- MODIFICHE -->
-    <h3>Modifiche proposte</h3>
+    <!-- MODIFICATIONS -->
+    <h3>Proposed modifications</h3>
     @if (application().modifications.length === 0) {
-      <p>Nessuna modifica proposta.</p>
+      <p>No modification proposed.</p>
     } @else {
       <table style="width: 100%; border-collapse: collapse; margin-bottom: 2rem;">
         <tbody>
@@ -165,8 +165,8 @@
               <td style="padding: 8px;">@if (mod.reason) { <em>{{ mod.reason }}</em> }</td>
               @if (isLecturer() && mod.status === 'pending') {
                 <td style="padding: 8px;">
-                  <button (click)="evaluateMod(mod._id, 'approved')">Approva</button>
-                  <button (click)="evaluateMod(mod._id, 'rejected')">Rifiuta</button>
+                  <button (click)="evaluateMod(mod._id, 'approved')">Approve</button>
+                  <button (click)="evaluateMod(mod._id, 'rejected')">Reject</button>
                 </td>
               }
             </tr>
@@ -177,40 +177,40 @@
 
   @if (isStudent()) {
     <div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 2rem;">
-      <h4>Proponi modifica al piano esami</h4>
-      
+      <h4>Propose a change to the exam plan</h4>
+
       <div style="margin-bottom: 8px;">
-        <label>Descrizione della modifica</label><br>
-        <input [(ngModel)]="modDescription" name="modDesc" style="width: 100%; padding: 6px;" 
-              placeholder="Es. Il corso non è più disponibile, sostituito con...">
+        <label>Description of the change</label><br>
+        <input [(ngModel)]="modDescription" name="modDesc" style="width: 100%; padding: 6px;"
+              placeholder="E.g. The course is no longer available, replaced with...">
       </div>
 
-      <p style="margin: 8px 0 4px 0;"><strong>Nuovo esame proposto:</strong></p>
+      <p style="margin: 8px 0 4px 0;"><strong>New proposed exam:</strong></p>
       <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-        <input placeholder="Codice estero" [(ngModel)]="modMapping.foreignCode" name="mfc">
-        <input placeholder="Nome corso estero" [(ngModel)]="modMapping.foreignName" name="mfn">
-        <input type="number" placeholder="CFU estero" [(ngModel)]="modMapping.foreignCredits" name="mfcr">
-        <input placeholder="Codice Ca' Foscari" [(ngModel)]="modMapping.cfCode" name="mcc">
-        <input placeholder="Nome corso Ca' Foscari" [(ngModel)]="modMapping.cfName" name="mcn">
-        <input type="number" placeholder="CFU Ca' Foscari" [(ngModel)]="modMapping.cfCredits" name="mccr">
+        <input placeholder="Foreign code" [(ngModel)]="modMapping.foreignCode" name="mfc">
+        <input placeholder="Foreign course name" [(ngModel)]="modMapping.foreignName" name="mfn">
+        <input type="number" placeholder="Foreign credits" [(ngModel)]="modMapping.foreignCredits" name="mfcr">
+        <input placeholder="Ca' Foscari code" [(ngModel)]="modMapping.cfCode" name="mcc">
+        <input placeholder="Ca' Foscari course name" [(ngModel)]="modMapping.cfName" name="mcn">
+        <input type="number" placeholder="Ca' Foscari credits" [(ngModel)]="modMapping.cfCredits" name="mccr">
       </div>
 
       <div style="margin-top: 8px;">
-        <label>Nuovo Learning Agreement</label><br>
+        <label>New Learning Agreement</label><br>
         <input type="file" (change)="onModFileSelected($event)">
       </div>
 
       <br>
-      <button (click)="proposeModification()">Proponi modifica</button>
+      <button (click)="proposeModification()">Propose change</button>
     </div>
   }
 
     <!-- STAFF -->
     @if (isStaff()) {
       <div style="border: 2px solid #333; padding: 1rem; margin-top: 2rem;">
-        <h4>Azioni Overseas Office</h4>
-        <button (click)="completePreDeparture()">Completa fase pre-partenza</button>
-        <button (click)="closeApp()" style="margin-left: 1rem;">Chiudi domanda</button>
+        <h4>Overseas Office actions</h4>
+        <button (click)="completePreDeparture()">Complete pre-departure phase</button>
+        <button (click)="closeApp()" style="margin-left: 1rem;">Close application</button>
       </div>
     }
   }

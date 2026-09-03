@@ -37,7 +37,7 @@ export class ApplicationNew implements OnInit {
 
     onSubmit() {
         if (!this.institutionId || !this.lecturerId || !this.academicYear) {
-            this.errorMessage.set('Compila tutti i campi');
+            this.errorMessage.set('Please fill in all fields');
             return;
         }
 
@@ -48,7 +48,7 @@ export class ApplicationNew implements OnInit {
             mobilityPeriod: this.mobilityPeriod
         }).subscribe({
             next: (app) => this.router.navigate(['/applications', app._id]),
-            error: () => this.errorMessage.set('Errore nella creazione della domanda')
+            error: () => this.errorMessage.set('Error creating the application')
         });
     }
 

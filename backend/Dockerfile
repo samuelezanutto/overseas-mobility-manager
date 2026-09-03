@@ -1,4 +1,4 @@
-# ---- Stage 1: compila TypeScript ----
+# ---- Stage 1: compile TypeScript ----
 FROM node:22-alpine AS builder
 
 WORKDIR /app
@@ -12,7 +12,7 @@ COPY src/ ./src/
 RUN npx tsc
 
 
-# ---- Stage 2: immagine finale ----
+# ---- Stage 2: final image ----
 FROM node:22-alpine AS runner
 
 WORKDIR /app

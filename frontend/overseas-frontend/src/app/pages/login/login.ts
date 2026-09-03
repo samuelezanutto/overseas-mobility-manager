@@ -22,7 +22,7 @@ export class Login {
     onSubmit() {
         this.authService.login(this.email, this.password).subscribe({
             next: () => this.router.navigate(['/dashboard']),
-            error: () => this.errorMessage.set('Email o password errati')
+            error: () => this.errorMessage.set('Incorrect email or password')
         });
     }
 }

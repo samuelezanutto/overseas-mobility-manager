@@ -4,7 +4,7 @@
     <div>
       <h2>Overseas Mobility</h2>
       @if (user()) {
-        <p>Benvenuto, <strong>{{ user().firstName }} {{ user().lastName }}</strong> - Ruolo: <strong>{{ user().role }}</strong></p>
+        <p>Welcome, <strong>{{ user().firstName }} {{ user().lastName }}</strong> - Role: <strong>{{ user().role }}</strong></p>
       }
     </div>
     <button (click)="logout()">Logout</button>
@@ -12,14 +12,14 @@
 
   <hr>
 
-  <h3>Le tue applicazioni</h3>
+  <h3>Your applications</h3>
 
   @if (user() && user().role === 'student') {
-    <button (click)="goToNew()">+ Nuova domanda</button>
+    <button (click)="goToNew()">+ New application</button>
   }
 
   @if (loading()) {
-    <div>Caricamento...</div>
+    <div>Loading...</div>
   }
 
   @if (errorMessage()) {
@@ -27,17 +27,17 @@
   }
 
   @if (!loading() && applications().length === 0) {
-    <div>Nessuna applicazione trovata.</div>
+    <div>No applications found.</div>
   }
 
   @if (!loading() && applications().length > 0) {
     <table style="width: 100%; border-collapse: collapse;">
       <thead>
         <tr style="background: #f0f0f0;">
-          <th style="padding: 8px; text-align: left;">Anno</th>
-          <th style="padding: 8px; text-align: left;">Periodo</th>
+          <th style="padding: 8px; text-align: left;">Year</th>
+          <th style="padding: 8px; text-align: left;">Period</th>
           <th style="padding: 8px; text-align: left;">Status</th>
-          <th style="padding: 8px; text-align: left;">Azioni</th>
+          <th style="padding: 8px; text-align: left;">Actions</th>
         </tr>
       </thead>
       <tbody>
@@ -47,7 +47,7 @@
             <td style="padding: 8px;">{{ app.mobilityPeriod }}</td>
             <td style="padding: 8px;">{{ app.status }}</td>
             <td style="padding: 8px;">
-              <button (click)="goToDetail(app._id)">Dettaglio</button>
+              <button (click)="goToDetail(app._id)">Details</button>
             </td>
           </tr>
         }

@@ -1,6 +1,6 @@
 import { Schema, model, Types } from 'mongoose';
 
-// ─── Tipi ────────────────────────────────────────────────────────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export type MobilityPeriod = 'first_semester' | 'second_semester' | 'full_year';
 
@@ -15,7 +15,7 @@ export type MobilityStatus =
 
 export type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
-// ─── Interfacce subdocumenti ──────────────────────────────────────────────────
+// ─── Subdocument interfaces ───────────────────────────────────────────────────
 
 export interface IExamResult {
     score: string;          
@@ -73,7 +73,7 @@ export interface IMobilityApplication {
     modifications: IModification[];
 }
 
-// ─── Schema subdocumenti ──────────────────────────────────────────────────────
+// ─── Subdocument schemas ──────────────────────────────────────────────────────
 
 const examResultSchema = new Schema<IExamResult>({
     score: { type: String, required: true },

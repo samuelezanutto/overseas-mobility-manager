@@ -1,22 +1,22 @@
 <div style="max-width: 600px; margin: 2rem auto; padding: 1rem;">
 
-  <button (click)="goBack()">&larr; Torna alla dashboard</button>
+  <button (click)="goBack()">&larr; Back to dashboard</button>
 
-  <h2>Nuova domanda di mobilità</h2>
+  <h2>New mobility application</h2>
 
   @if (errorMessage()) {
     <p style="color: red; padding: 8px; background: #ffe6e6;">{{ errorMessage() }}</p>
   }
 
   <div style="margin-bottom: 1rem;">
-    <label>Anno accademico</label><br>
+    <label>Academic year</label><br>
     <input [(ngModel)]="academicYear" name="ay" style="width: 100%; padding: 6px;">
   </div>
 
   <div style="margin-bottom: 1rem;">
-    <label>Istituzione ospitante</label><br>
+    <label>Host institution</label><br>
     <select [(ngModel)]="institutionId" name="inst" style="width: 100%; padding: 6px;">
-      <option value="">-- Seleziona --</option>
+      <option value="">-- Select --</option>
       @for (i of institutions(); track i._id) {
         <option [value]="i._id">{{ i.name }} ({{ i.city }}, {{ i.country }})</option>
       }
@@ -24,9 +24,9 @@
   </div>
 
   <div style="margin-bottom: 1rem;">
-    <label>Docente referente</label><br>
+    <label>Referent lecturer</label><br>
     <select [(ngModel)]="lecturerId" name="lect" style="width: 100%; padding: 6px;">
-      <option value="">-- Seleziona --</option>
+      <option value="">-- Select --</option>
       @for (l of lecturers(); track l._id) {
         <option [value]="l._id">{{ l.firstName }} {{ l.lastName }}</option>
       }
@@ -34,14 +34,14 @@
   </div>
 
   <div style="margin-bottom: 1rem;">
-    <label>Periodo di mobilità</label><br>
+    <label>Mobility period</label><br>
     <select [(ngModel)]="mobilityPeriod" name="period" style="width: 100%; padding: 6px;">
-      <option value="first_semester">Primo semestre</option>
-      <option value="second_semester">Secondo semestre</option>
-      <option value="full_year">Anno intero</option>
+      <option value="first_semester">First semester</option>
+      <option value="second_semester">Second semester</option>
+      <option value="full_year">Full year</option>
     </select>
   </div>
 
-  <button (click)="onSubmit()" style="padding: 8px 16px;">Crea domanda</button>
+  <button (click)="onSubmit()" style="padding: 8px 16px;">Create application</button>
 
 </div>

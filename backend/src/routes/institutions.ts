@@ -4,7 +4,7 @@ import { Institution } from '../models/Institution';
 
 const router = Router();
 
-// GET /institutions - tutte le istituzioni
+// GET /institutions - all institutions
 router.get('/', authMiddleware, async (req: Request, res: Response) => {
     try {
         const institutions = await Institution.find();
@@ -14,7 +14,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
     }
 });
 
-// GET /institutions/:id - singola istituzione
+// GET /institutions/:id - single institution
 router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
     try {
         const institution = await Institution.findById(req.params.id);

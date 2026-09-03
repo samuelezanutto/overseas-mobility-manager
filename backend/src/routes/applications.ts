@@ -100,9 +100,9 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
 
 // POST /applications/:id/learning-agreement
 const storage = multer.diskStorage({
-    destination: 'uploads/',       // dove salva i file
+    destination: 'uploads/',       // where files are saved
     filename: (req, file, cb) => {
-        // nome univoco: timestamp + nome originale
+        // unique name: timestamp + original name
         const uniqueName = `${Date.now()}-${file.originalname}`;
         cb(null, uniqueName);
     }
@@ -136,10 +136,10 @@ router.post('/:id/learning-agreement',
         application.learningAgreements.push({
             filePath: req.file.path,
             uploadedAt: new Date(),
-            status: 'pending'           // ← mancava
+            status: 'pending'
         });
 
-        application.status = 'awaiting_la_approval';  // ← mancava
+        application.status = 'awaiting_la_approval';
 
         await application.save();
         res.status(201).json(application);
@@ -241,10 +241,10 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
 
         application.arrivalDate = new Date(arrivalDate);
         application.departureDate = new Date(departureDate);
-        application.status = 'mobility_in_progress';  // ← prima del save
+        application.status = 'mobility_in_progress';
 
         await application.save();
-        res.json(application);                         // ← ultima cosa
+        res.json(application);
     } catch (error) {
         res.status(500).json({ message: 'Error updating dates' });
     }
@@ -413,7 +413,7 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
         return res.status(403).json({ message: 'Access denied' });
     }
 
-    const { score, examDate } = req.body;    // ← i campi corretti
+    const { score, examDate } = req.body;
     if (!score || !examDate) {
         return res.status(400).json({ message: 'score and examDate are required' });
     }
@@ -433,7 +433,7 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
             return res.status(404).json({ message: 'Mapping not found' });
         }
 
-        // result è un oggetto IExamResult, non una stringa
+        // result is an IExamResult object, not a string
         mapping.result = {
             score,
             examDate: new Date(examDate),
@@ -475,7 +475,7 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
     }
 });
 
-// GET /applications/:id/files/:filename - scarica un file
+// GET /applications/:id/files/:filename - download a file
 router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Response) => {
     try {
         const application = await MobilityApplication.findById(req.params.id);

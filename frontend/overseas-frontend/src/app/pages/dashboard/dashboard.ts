@@ -33,7 +33,7 @@ export class Dashboard implements OnInit {
                 this.loading.set(false);
             },
             error: () => {
-                this.errorMessage.set('Errore nel caricamento delle applicazioni');
+                this.errorMessage.set('Error loading applications');
                 this.loading.set(false);
             }
         });

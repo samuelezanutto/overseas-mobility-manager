@@ -30,6 +30,6 @@ connectDB().then(async () => {
     await seedInstitutions();
     await seedUsers();
     app.listen(PORT, () => {
-        console.log(`Server in ascolto su http://localhost:${PORT}`);
+        console.log(`Server listening on http://localhost:${PORT}`);
     });
 });

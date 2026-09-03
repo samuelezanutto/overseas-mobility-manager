@@ -4,7 +4,7 @@ import { tap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 
 @Injectable({
-    providedIn: 'root'      // disponibile in tutta l'app
+    providedIn: 'root'      // available throughout the app
 })
 export class AuthService {
     private apiUrl = environment.apiUrl;
@@ -16,7 +16,7 @@ export class AuthService {
             (`${this.apiUrl}/auth/login`, { email, password })
             .pipe(
                 tap(response => {
-                    // salva il token quando il login ha successo
+                    // save the token when login succeeds
                     localStorage.setItem('token', response.token);
                     localStorage.setItem('user', JSON.stringify(response.user));
                 })

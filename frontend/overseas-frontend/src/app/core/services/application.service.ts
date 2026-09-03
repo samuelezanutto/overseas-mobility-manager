@@ -80,7 +80,7 @@ export class ApplicationService {
     }
 
     downloadFile(applicationId: string, filePath: string) {
-    // estrae solo il nome file dal path completo "uploads/123-file.pdf"
+    // extract just the filename from the full path "uploads/123-file.pdf"
         const filename = filePath.split('/').pop();
         return this.http.get(
             `${this.apiUrl}/applications/${applicationId}/files/${filename}`,
