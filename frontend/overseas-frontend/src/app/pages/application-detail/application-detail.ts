@@ -72,6 +72,20 @@ export class ApplicationDetail implements OnInit {
   isLecturer() { return this.userRole() === 'lecturer'; }
   isStaff() { return this.userRole() === 'staff'; }
 
+  private static readonly STATUS_LABELS: Record<string, string> = {
+      created: 'Created',
+      awaiting_la_approval: 'Awaiting LA Approval',
+      pre_departure_completed: 'Pre-Departure Completed',
+      mobility_in_progress: 'Mobility In Progress',
+      waiting_score_approval: 'Waiting Score Approval',
+      closed: 'Closed',
+      canceled: 'Canceled'
+  };
+
+  statusLabel(status: string) {
+      return ApplicationDetail.STATUS_LABELS[status] ?? status;
+  }
+
   addMapping() {
       if (!this.newMapping.foreignCode || !this.newMapping.cfCode) {
           this.errorMessage.set('Please fill in at least the course codes');

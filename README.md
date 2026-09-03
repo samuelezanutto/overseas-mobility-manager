@@ -218,4 +218,6 @@ The JWT secret is read from the environment, with a development default so the p
 
 ## License
 
-Academic project. Not intended for production use.
+MIT License. See [LICENSE](LICENSE) for details.
+
+Academic project, not intended for production use.

@@ -17,7 +17,7 @@
     <table>
       <tr><td><strong>Academic year</strong></td><td>{{ application().academicYear }}</td></tr>
       <tr><td><strong>Period</strong></td><td>{{ application().mobilityPeriod }}</td></tr>
-      <tr><td><strong>Status</strong></td><td><span class="badge">{{ application().status }}</span></td></tr>
+      <tr><td><strong>Status</strong></td><td><span class="badge">{{ statusLabel(application().status) }}</span></td></tr>
       @if (application().arrivalDate) {
         <tr><td><strong>Arrival</strong></td><td>{{ application().arrivalDate }}</td></tr>
       }
