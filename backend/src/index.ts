@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import { connectDB } from './db';
 import authRoutes from './routes/auth';
@@ -24,6 +24,17 @@ app.use('/applications', applicationRoutes);
 app.use('/users', userRoutes);
 app.get('/', (req, res) => {
     res.json({ message: 'Backend is running' });
+});
+
+// a rejected upload (oversized file, wrong field, malformed multipart body)
+// throws before reaching any route handler; report it as JSON like every
+// other error instead of falling through to Express's default HTML page
+app.use((err: any, req: Request, res: Response, next: NextFunction) => {
+    if (err?.name === 'MulterError') {
+        return res.status(400).json({ message: err.message });
+    }
+    console.error(err);
+    res.status(500).json({ message: 'Unexpected server error' });
 });
 
 connectDB().then(async () => {

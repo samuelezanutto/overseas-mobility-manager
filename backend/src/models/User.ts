@@ -17,7 +17,10 @@ const userSchema = new Schema<IUser>({
     firstName: { type: String, required: true },
     lastName: { type: String, required: true },
     role: { type: String, enum: ['student', 'lecturer', 'staff'], required: true },
-    matriculationNumber: { type: String }
+    // sparse: lecturers/staff never set this field, so it must not be
+    // indexed for them (a plain unique index would treat every missing
+    // value as null and reject the second lecturer/staff created)
+    matriculationNumber: { type: String, unique: true, sparse: true }
 }, {
     timestamps: true
 });

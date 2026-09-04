@@ -329,8 +329,52 @@
       </div>
     }
 
+    <!-- CANCELLATION -->
+    <h3>Cancellation</h3>
+    @if (application().cancellationRequests.length === 0) {
+      <p>No cancellation requested.</p>
+    } @else {
+      <table>
+        <tbody>
+          @for (c of application().cancellationRequests; track c._id) {
+            <tr>
+              <td>{{ c.reason }}</td>
+              <td>
+                <span
+                  class="badge"
+                  [class.badge-approved]="c.status === 'approved'"
+                  [class.badge-rejected]="c.status === 'rejected'"
+                  [class.badge-pending]="c.status === 'pending'"
+                  >{{ c.status }}</span
+                >
+              </td>
+              <td>
+                @if (c.decisionReason) {
+                  <em>{{ c.decisionReason }}</em>
+                }
+              </td>
+              @if (isStaff() && c.status === 'pending') {
+                <td>
+                  <button (click)="evaluateCancellation(c._id, 'approved')">Approve</button>
+                  <button class="btn-danger" (click)="evaluateCancellation(c._id, 'rejected')">
+                    Reject
+                  </button>
+                </td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if (canRequestCancellation()) {
+      <div class="card">
+        <button class="btn-danger" (click)="requestCancellation()">Request cancellation</button>
+      </div>
+    }
+
     <!-- STAFF -->
-    @if (isStaff() && (canCompletePreDeparture() || canClose())) {
+    @if (isStaff() && (canCompletePreDeparture() || canClose() || canForceCancel())) {
       <div class="card card-highlight">
         <h4>Overseas Office actions</h4>
         @if (canCompletePreDeparture()) {
@@ -338,6 +382,9 @@
         }
         @if (canClose()) {
           <button class="btn-danger ml-1" (click)="closeApp()">Close application</button>
+        }
+        @if (canForceCancel()) {
+          <button class="btn-danger ml-1" (click)="forceCancel()">Cancel application</button>
         }
       </div>
     }

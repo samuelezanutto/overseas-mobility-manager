@@ -75,6 +75,8 @@ export class ApplicationDetail implements OnInit {
 
   canUploadLA() {
     if (!this.isStudent()) return false;
+    const status = this.application()?.status;
+    if (status !== 'created' && status !== 'awaiting_la_approval') return false;
     const agreements = this.application()?.learningAgreements ?? [];
     if (agreements.length === 0) return true;
     return agreements[agreements.length - 1].status === 'rejected';
@@ -98,6 +100,23 @@ export class ApplicationDetail implements OnInit {
 
   canClose() {
     return this.isStaff() && this.application()?.status === 'waiting_score_approval';
+  }
+
+  isTerminal() {
+    const status = this.application()?.status;
+    return status === 'closed' || status === 'canceled';
+  }
+
+  hasPendingCancellation() {
+    return (this.application()?.cancellationRequests ?? []).some((r: any) => r.status === 'pending');
+  }
+
+  canRequestCancellation() {
+    return this.isStudent() && !this.isTerminal() && !this.hasPendingCancellation();
+  }
+
+  canForceCancel() {
+    return this.isStaff() && !this.isTerminal();
   }
 
   isStudent() {
@@ -275,6 +294,52 @@ export class ApplicationDetail implements OnInit {
         this.errorMessage.set('');
       },
       error: (err) => this.errorMessage.set(err.error?.message ?? 'Error'),
+    });
+  }
+
+  requestCancellation() {
+    const reason = prompt('Why do you want to cancel this application?');
+    if (!reason) return;
+
+    this.applicationService.requestCancellation(this.applicationId, reason).subscribe({
+      next: (app) => {
+        this.application.set(app);
+        this.successMessage.set('Cancellation requested');
+        this.errorMessage.set('');
+      },
+      error: (err) =>
+        this.errorMessage.set(err.error?.message ?? 'Error requesting the cancellation'),
+    });
+  }
+
+  evaluateCancellation(requestId: string, decision: string) {
+    const decisionReason =
+      decision === 'rejected' ? (prompt('Reason for rejecting the cancellation:') ?? '') : '';
+
+    this.applicationService
+      .evaluateCancellationRequest(this.applicationId, requestId, decision, decisionReason)
+      .subscribe({
+        next: (app) => {
+          this.application.set(app);
+          this.successMessage.set(`Cancellation request ${decision}`);
+          this.errorMessage.set('');
+        },
+        error: (err) =>
+          this.errorMessage.set(err.error?.message ?? 'Error evaluating the cancellation'),
+      });
+  }
+
+  forceCancel() {
+    const reason = prompt('Reason for canceling this application:');
+    if (!reason) return;
+
+    this.applicationService.cancelApplication(this.applicationId, reason).subscribe({
+      next: (app) => {
+        this.application.set(app);
+        this.successMessage.set('Application canceled');
+        this.errorMessage.set('');
+      },
+      error: (err) => this.errorMessage.set(err.error?.message ?? 'Error canceling the application'),
     });
   }
 

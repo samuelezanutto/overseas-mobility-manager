@@ -91,6 +91,28 @@ export class ApplicationService {
     return this.http.patch<any>(`${this.apiUrl}/applications/${id}/close`, {});
   }
 
+  requestCancellation(id: string, reason: string) {
+    return this.http.post<any>(`${this.apiUrl}/applications/${id}/cancellation-requests`, {
+      reason,
+    });
+  }
+
+  evaluateCancellationRequest(
+    id: string,
+    requestId: string,
+    decision: string,
+    decisionReason?: string,
+  ) {
+    return this.http.patch<any>(
+      `${this.apiUrl}/applications/${id}/cancellation-requests/${requestId}/evaluate`,
+      { decision, decisionReason },
+    );
+  }
+
+  cancelApplication(id: string, reason: string) {
+    return this.http.patch<any>(`${this.apiUrl}/applications/${id}/cancel`, { reason });
+  }
+
   downloadFile(applicationId: string, filePath: string) {
     // extract just the filename from the full path "uploads/123-file.pdf"
     const filename = filePath.split('/').pop();

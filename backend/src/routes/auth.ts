@@ -23,6 +23,11 @@ router.post('/register', async (req: Request, res: Response) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        const existingMatriculation = await User.findOne({ matriculationNumber });
+        if (existingMatriculation) {
+            return res.status(400).json({ message: 'A user with this matriculation number already exists' });
+        }
+
         const passwordHash = await bcrypt.hash(password, 10);
 
         const user = new User({
@@ -52,7 +57,11 @@ router.post('/register', async (req: Request, res: Response) => {
                 matriculationNumber: user.matriculationNumber
             }
         });
-    } catch (error) {
+    } catch (error: any) {
+        // race: two concurrent registrations past the pre-checks above
+        if (error?.code === 11000) {
+            return res.status(400).json({ message: 'A user with this email or matriculation number already exists' });
+        }
         res.status(500).json({ message: 'Error creating user' });
     }
 });

@@ -1,16 +1,22 @@
 import { Router, Request, Response } from 'express';
 import { authMiddleware } from '../middleware/auth';
 import { MobilityApplication } from '../models/MobilityApplication';
+import { Institution } from '../models/Institution';
+import { User } from '../models/User';
 import multer from 'multer';
 import path from 'path';
 
 const router = Router();
 
 // a Mongoose ValidationError (bad enum value, missing required subdocument
-// field, etc.) means the request was malformed, not a server failure
+// field, etc.) or CastError (malformed ObjectId) means the request was
+// malformed, not a server failure
 function handleError(res: Response, error: unknown, fallbackMessage: string) {
     if (error instanceof Error && error.name === 'ValidationError') {
         return res.status(400).json({ message: error.message });
+    }
+    if (error instanceof Error && error.name === 'CastError') {
+        return res.status(400).json({ message: 'Invalid id format' });
     }
     console.error(fallbackMessage, error);
     return res.status(500).json({ message: fallbackMessage });
@@ -29,6 +35,16 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
     }
 
     try {
+        const institution = await Institution.findById(institutionId);
+        if (!institution) {
+            return res.status(400).json({ message: 'Institution not found' });
+        }
+
+        const lecturer = await User.findOne({ _id: lecturerId, role: 'lecturer' });
+        if (!lecturer) {
+            return res.status(400).json({ message: 'Lecturer not found' });
+        }
+
         const application = new MobilityApplication({
             studentId: req.user!.id,
             institutionId,
@@ -63,7 +79,7 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
 
         res.json(applications);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching applications' });
+        handleError(res, error, 'Error fetching applications');
     }
 });
 
@@ -85,7 +101,7 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
 
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error fetching application' });
+        handleError(res, error, 'Error fetching application');
     }
 });
 
@@ -135,7 +151,17 @@ const storage = multer.diskStorage({
     }
 });
 
-const upload = multer({ storage });
+const ALLOWED_DOCUMENT_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
+
+const upload = multer({
+    storage,
+    limits: { fileSize: 10 * 1024 * 1024 }, // 10 MB
+    fileFilter: (req, file, cb) => {
+        // reject silently: req.file stays undefined and the route's own
+        // "No file uploaded" check reports it as a normal 400
+        cb(null, ALLOWED_DOCUMENT_TYPES.includes(file.mimetype));
+    }
+});
 
 router.post('/:id/learning-agreement',
     authMiddleware,
@@ -157,6 +183,12 @@ router.post('/:id/learning-agreement',
 
             if (application.studentId.toString() !== req.user!.id) {
                 return res.status(403).json({ message: 'Access denied' });
+            }
+
+            if (!['created', 'awaiting_la_approval'].includes(application.status)) {
+                return res.status(400).json({
+                    message: 'A Learning Agreement cannot be uploaded in the current application status'
+                });
             }
 
             const lastLA = application.learningAgreements[application.learningAgreements.length - 1];
@@ -200,6 +232,10 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
 
         if (application.lecturerId.toString() !== req.user!.id) {
             return res.status(403).json({ message: 'Access denied' });
+        }
+
+        if (['closed', 'canceled'].includes(application.status)) {
+            return res.status(400).json({ message: 'Cannot evaluate anything on a closed or canceled application' });
         }
 
         const learningAgreement = application.learningAgreements.find(
@@ -411,6 +447,10 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        if (['closed', 'canceled'].includes(application.status)) {
+            return res.status(400).json({ message: 'Cannot evaluate anything on a closed or canceled application' });
+        }
+
         const modification = application.modifications.find(
             mod => String(mod._id) === req.params.modificationId
         );
@@ -585,6 +625,136 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
     }
 });
 
+const TERMINAL_STATUSES = ['closed', 'canceled'];
+
+// POST /applications/:id/cancellation-requests - student asks to cancel
+router.post('/:id/cancellation-requests', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can request a cancellation' });
+    }
+
+    const { reason } = req.body;
+    if (!reason) {
+        return res.status(400).json({ message: 'A reason is required' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.studentId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        if (TERMINAL_STATUSES.includes(application.status)) {
+            return res.status(400).json({ message: 'This application is already closed or canceled' });
+        }
+
+        const alreadyPending = application.cancellationRequests.some(r => r.status === 'pending');
+        if (alreadyPending) {
+            return res.status(400).json({ message: 'A cancellation request is already pending' });
+        }
+
+        application.cancellationRequests.push({
+            reason,
+            status: 'pending',
+            requestedAt: new Date()
+        });
+
+        await application.save();
+        res.status(201).json(application);
+    } catch (error) {
+        handleError(res, error, 'Error requesting cancellation');
+    }
+});
+
+// PATCH /applications/:id/cancellation-requests/:requestId/evaluate - staff decides
+router.patch('/:id/cancellation-requests/:requestId/evaluate', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'staff') {
+        return res.status(403).json({ message: 'Only staff can evaluate a cancellation request' });
+    }
+
+    const { decision, decisionReason } = req.body;
+    if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ message: 'Decision must be either "approved" or "rejected"' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (TERMINAL_STATUSES.includes(application.status)) {
+            return res.status(400).json({ message: 'This application is already closed or canceled' });
+        }
+
+        const request = application.cancellationRequests.find(
+            r => String(r._id) === req.params.requestId
+        );
+        if (!request) {
+            return res.status(404).json({ message: 'Cancellation request not found' });
+        }
+
+        if (request.status !== 'pending') {
+            return res.status(400).json({ message: 'This cancellation request has already been evaluated' });
+        }
+
+        request.status = decision;
+        request.decisionDate = new Date();
+        if (decisionReason) {
+            request.decisionReason = decisionReason;
+        }
+
+        if (decision === 'approved') {
+            application.status = 'canceled';
+        }
+
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        handleError(res, error, 'Error evaluating cancellation request');
+    }
+});
+
+// PATCH /applications/:id/cancel - staff cancels directly, at any time, with a reason
+router.patch('/:id/cancel', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'staff') {
+        return res.status(403).json({ message: 'Only staff can cancel an application directly' });
+    }
+
+    const { reason } = req.body;
+    if (!reason) {
+        return res.status(400).json({ message: 'A reason is required' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (TERMINAL_STATUSES.includes(application.status)) {
+            return res.status(400).json({ message: 'This application is already closed or canceled' });
+        }
+
+        application.cancellationRequests.push({
+            reason,
+            status: 'approved',
+            requestedAt: new Date(),
+            decisionDate: new Date()
+        });
+
+        application.status = 'canceled';
+        await application.save();
+        res.json(application);
+    } catch (error) {
+        handleError(res, error, 'Error canceling application');
+    }
+});
+
 // GET /applications/:id/files/:filename - download a file
 router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Response) => {
     try {
@@ -609,7 +779,7 @@ router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Res
         const filePath = path.resolve('uploads', filename);
         res.sendFile(filePath);
     } catch (error) {
-        res.status(500).json({ message: 'Error downloading file' });
+        handleError(res, error, 'Error downloading file');
     }
 });
 

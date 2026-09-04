@@ -61,6 +61,17 @@ export interface IModification {
     replacesMappingId?: Types.ObjectId;
 }
 
+export interface ICancellationRequest {
+    _id?: Types.ObjectId;
+    // why the cancellation is wanted; set by the student when requesting one,
+    // or by staff when force-cancelling directly
+    reason: string;
+    status: ApprovalStatus;
+    requestedAt: Date;
+    decisionDate?: Date;
+    decisionReason?: string;
+}
+
 export interface IMobilityApplication {
     studentId: Types.ObjectId;
     lecturerId: Types.ObjectId;
@@ -74,6 +85,7 @@ export interface IMobilityApplication {
     learningAgreements: ILearningAgreement[];
     transcripts: ITranscript[];
     modifications: IModification[];
+    cancellationRequests: ICancellationRequest[];
 }
 
 // ─── Subdocument schemas ──────────────────────────────────────────────────────
@@ -91,10 +103,10 @@ const examResultSchema = new Schema<IExamResult>({
 const examMappingSchema = new Schema<IExamMapping>({
     foreignCode: { type: String, required: true },
     foreignName: { type: String, required: true },
-    foreignCredits: { type: Number, required: true },
+    foreignCredits: { type: Number, required: true, min: [0.5, 'Credits must be greater than zero'] },
     cfCode: { type: String, required: true },
     cfName: { type: String, required: true },
-    cfCredits: { type: Number, required: true },
+    cfCredits: { type: Number, required: true, min: [0.5, 'Credits must be greater than zero'] },
     isActive: { type: Boolean, default: true },
     result: { type: examResultSchema }
 });
@@ -129,6 +141,18 @@ const modificationSchema = new Schema<IModification>({
     replacesMappingId: { type: Schema.Types.ObjectId }
 });
 
+const cancellationRequestSchema = new Schema<ICancellationRequest>({
+    reason: { type: String, required: true },
+    status: {
+        type: String,
+        enum: ['pending', 'approved', 'rejected'],
+        default: 'pending'
+    },
+    requestedAt: { type: Date, default: Date.now },
+    decisionDate: { type: Date },
+    decisionReason: { type: String }
+});
+
 // ─── Main Schema ────────────────────────────────────────────────────────
 
 const mobilityApplicationSchema = new Schema<IMobilityApplication>({
@@ -152,7 +176,8 @@ const mobilityApplicationSchema = new Schema<IMobilityApplication>({
     mappings: [examMappingSchema],
     learningAgreements: [learningAgreementSchema],
     transcripts: [transcriptSchema],
-    modifications: [modificationSchema]
+    modifications: [modificationSchema],
+    cancellationRequests: [cancellationRequestSchema]
 }, {
     timestamps: true
 });
