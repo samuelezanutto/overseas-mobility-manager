@@ -91,7 +91,7 @@ router.post('/login', async (req: Request, res: Response) => {
             { expiresIn: JWT_EXPIRES_IN }
         );
 
-        res.status(201).json({
+        res.status(200).json({
             token,
             user: {
                 id: user._id,
