@@ -60,6 +60,15 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
         if (!application) {
             return res.status(404).json({ message: 'Application not found' });
         }
+
+        const { role, id } = req.user!;
+        const isOwner = application.studentId.toString() === id;
+        const isReferent = application.lecturerId.toString() === id;
+
+        if (role !== 'staff' && !isOwner && !isReferent) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
         res.json(application);
     } catch (error) {
         res.status(500).json({ message: 'Error fetching application' });
