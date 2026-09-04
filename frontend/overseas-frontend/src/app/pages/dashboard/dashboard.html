@@ -14,7 +14,49 @@
 
   <hr />
 
-  <h3>Your applications</h3>
+  @if (isStaff() && !loading()) {
+    <h3>Overview</h3>
+    <div class="stat-cards">
+      @for (entry of statusCounts() | keyvalue: keepOrder; track entry.key) {
+        <button
+          class="stat-card"
+          [class.active]="statusFilter() === entry.key"
+          (click)="filterByStatus(entry.key)"
+        >
+          <span class="stat-count">{{ entry.value }}</span>
+          <span class="stat-label">{{ statusLabel(entry.key) }}</span>
+        </button>
+      }
+    </div>
+
+    <div class="filters">
+      <label>
+        Country
+        <select [(ngModel)]="countryFilter">
+          <option value="">All</option>
+          @for (country of countries(); track country) {
+            <option [value]="country">{{ country }}</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Host institution
+        <select [(ngModel)]="institutionFilter">
+          <option value="">All</option>
+          @for (institution of institutions(); track institution) {
+            <option [value]="institution">{{ institution }}</option>
+          }
+        </select>
+      </label>
+
+      @if (statusFilter() || countryFilter() || institutionFilter()) {
+        <button class="btn-outline" (click)="clearFilters()">Clear filters</button>
+      }
+    </div>
+  }
+
+  <h3>{{ isStaff() ? 'Applications' : 'Your applications' }}</h3>
 
   @if (user() && user().role === 'student') {
     <button (click)="goToNew()">+ New application</button>
@@ -32,21 +74,33 @@
     <div>No applications found.</div>
   }
 
-  @if (!loading() && applications().length > 0) {
+  @if (!loading() && applications().length > 0 && filteredApplications().length === 0) {
+    <div>No applications match the selected filters.</div>
+  }
+
+  @if (!loading() && filteredApplications().length > 0) {
     <table>
       <thead>
         <tr>
           <th>Year</th>
           <th>Period</th>
+          @if (isStaff()) {
+            <th>Host institution</th>
+            <th>Country</th>
+          }
           <th>Status</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        @for (app of applications(); track app._id) {
+        @for (app of filteredApplications(); track app._id) {
           <tr>
             <td>{{ app.academicYear }}</td>
             <td>{{ periodLabel(app.mobilityPeriod) }}</td>
+            @if (isStaff()) {
+              <td>{{ app.institutionId?.name ?? '-' }}</td>
+              <td>{{ app.institutionId?.country ?? '-' }}</td>
+            }
             <td>
               <span class="badge">{{ statusLabel(app.status) }}</span>
             </td>

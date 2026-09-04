@@ -5,7 +5,7 @@ import authRoutes from './routes/auth';
 import institutionRoutes from './routes/institutions';
 import applicationRoutes from './routes/applications';
 import userRoutes from './routes/users';
-import { seedInstitutions, seedUsers } from './seed';
+import { seedInstitutions, seedUsers, seedApplications } from './seed';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +40,7 @@ app.use((err: any, req: Request, res: Response, next: NextFunction) => {
 connectDB().then(async () => {
     await seedInstitutions();
     await seedUsers();
+    await seedApplications();
     app.listen(PORT, () => {
         console.log(`Server listening on http://localhost:${PORT}`);
     });

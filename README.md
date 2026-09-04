@@ -14,7 +14,7 @@ The Overseas program allows students to spend a period at a partner university a
 
 **Referent lecturers** review applications, approve or reject Learning Agreements, and validate exam results on return.
 
-**Overseas Office staff** monitor all applications, mark the pre-departure phase complete, and close applications at the end of the process.
+**Overseas Office staff** monitor all applications, mark the pre-departure phase complete, and close applications at the end of the process. Their dashboard also breaks applications down by status, country, and host institution, with click-to-filter counters.
 
 Each role sees a different view of the same application, with actions gated by both role and ownership.
 
@@ -95,6 +95,8 @@ Exam mappings are never deleted. When a modification is approved, the previous m
   closed
 ```
 
+`canceled` is reachable from any non-terminal state above: a student can request cancellation (office approves or rejects it), and office staff can cancel directly at any time, with a reason.
+
 ---
 
 ## Running the Application
@@ -118,7 +120,7 @@ docker compose down -v     # stop and wipe the database
 
 ## Test Data
 
-The backend seeds the database on first startup with partner institutions and six users covering all three roles. All accounts use the password `password123`.
+The backend seeds the database on first startup with partner institutions, six users covering all three roles, and seven sample applications — one per status, spread across different countries and host institutions. All accounts use the password `password123`.
 
 | Role | Email |
 |---|---|
@@ -129,7 +131,7 @@ The backend seeds the database on first startup with partner institutions and si
 | Lecturer | `prof.focardi@unive.it` |
 | Office staff | `ufficio.overseas@unive.it` |
 
-To see the full workflow, log in as a student and create an application, then switch roles as the process requires.
+Log in as `ufficio.overseas@unive.it` to see the dashboard already populated with the seeded applications. To see the full workflow from scratch, log in as a student and create a new application, then switch roles as the process requires.
 
 ---
 
@@ -164,16 +166,19 @@ GET    /applications/:id/files/:name     download an uploaded document
 **Workflow actions**
 
 ```
-POST   /applications/:id/mappings                          add exam mappings
-POST   /applications/:id/learning-agreement                upload document
-PATCH  /applications/:id/learning-agreement/:laId/evaluate approve or reject
-PATCH  /applications/:id/pre-departure                     mark phase complete
-PATCH  /applications/:id/dates                             set mobility dates
-POST   /applications/:id/modifications                     propose a change
-PATCH  /applications/:id/modifications/:modId/evaluate     approve or reject
-POST   /applications/:id/transcript                        upload transcript
-PATCH  /applications/:id/mappings/:mappingId/result        record exam result
-PATCH  /applications/:id/close                             close application
+POST   /applications/:id/mappings                              add exam mappings
+POST   /applications/:id/learning-agreement                    upload document
+PATCH  /applications/:id/learning-agreement/:laId/evaluate     approve or reject
+PATCH  /applications/:id/pre-departure                         mark phase complete
+PATCH  /applications/:id/dates                                 set mobility dates
+POST   /applications/:id/modifications                         propose a change
+PATCH  /applications/:id/modifications/:modId/evaluate         approve or reject
+POST   /applications/:id/transcript                            upload transcript
+PATCH  /applications/:id/mappings/:mappingId/result            record exam result
+PATCH  /applications/:id/close                                 close application
+POST   /applications/:id/cancellation-requests                 student requests cancellation
+PATCH  /applications/:id/cancellation-requests/:reqId/evaluate office approves or rejects
+PATCH  /applications/:id/cancel                                office cancels directly
 ```
 
 ---
@@ -200,7 +205,8 @@ overseas-app/
         ├── core/
         │   ├── services/       backend communication
         │   ├── guards/         route protection
-        │   └── interceptors/   automatic token injection
+        │   ├── interceptors/   automatic token injection
+        │   └── utils/          labels.ts — enum-to-display-label mapping
         └── pages/              page components
 ```
 

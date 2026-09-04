@@ -54,8 +54,8 @@ e installate tutte le dipendenze.
 
 L'applicazione e' pronta quando nei log compaiono le righe:
 
-  backend-1   | MongoDB connesso
-  backend-1   | Server in ascolto su http://localhost:3000
+  backend-1   | MongoDB connected
+  backend-1   | Server listening on http://localhost:3000
 
 A quel punto l'applicazione e' raggiungibile all'indirizzo:
 
@@ -87,8 +87,11 @@ di test vengano ricaricati al successivo avvio:
 --------------------------------------------------------------------------------
 
 Al primo avvio, se il database e' vuoto, il backend precarica automaticamente
-la lista delle istituzioni partner e sei utenti, che coprono tutti e tre i
-ruoli previsti dal sistema.
+la lista delle istituzioni partner, sei utenti che coprono tutti e tre i
+ruoli previsti dal sistema, e sette domande di mobilita' di esempio, una per
+ciascuno stato del workflow e distribuite su piu' paesi/istituzioni ospitanti
+- utili per vedere subito la dashboard dell'Ufficio Overseas popolata, senza
+dover prima creare domande a mano.
 
 Il caricamento avviene solo a database vuoto, quindi i riavvii successivi non
 generano duplicati.
@@ -158,6 +161,23 @@ sulla stessa domanda.
         esami attivi risultano approvati)
 
 
+  FASE OPZIONALE - CANCELLAZIONE (in qualsiasi momento prima della chiusura)
+
+  - Studente: richiedere la cancellazione della domanda, indicando un motivo
+  - Ufficio Overseas: approvare o rifiutare la richiesta, oppure cancellare
+    direttamente la domanda in qualsiasi momento, con un proprio motivo
+
+
+  DASHBOARD UFFICIO OVERSEAS
+
+  Accedendo come Ufficio Overseas (ufficio.overseas@unive.it) e' visibile,
+  sopra l'elenco delle domande, un riepilogo con un contatore per ciascuno
+  stato (cliccabile, per filtrare l'elenco) e due filtri, per paese e per
+  istituzione ospitante. E' gia' popolato con le sette domande di esempio
+  precaricate al primo avvio (vedi sezione 4), senza bisogno di crearne di
+  nuove per vederlo in azione.
+
+
 --------------------------------------------------------------------------------
 6. STRUTTURA DEL CODICE SORGENTE
 --------------------------------------------------------------------------------
@@ -199,8 +219,10 @@ sulla stessa domanda.
           |   +-- services/       comunicazione con il backend
           |   +-- guards/         protezione delle rotte
           |   +-- interceptors/   inserimento automatico del token JWT
+          |   +-- utils/          labels.ts, mappatura enum -> etichette
           +-- pages/
               +-- login/
+              +-- register/
               +-- dashboard/
               +-- application-new/
               +-- application-detail/

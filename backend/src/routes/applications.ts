@@ -73,8 +73,9 @@ router.get('/', authMiddleware, async (req: Request, res: Response) => {
             // lecturers see only applications they are assigned to
             applications = await MobilityApplication.find({ lecturerId: id });
         } else {
-            // staff see all applications
-            applications = await MobilityApplication.find();
+            // staff see all applications, with the host institution populated
+            // so the dashboard can break them down by country/institution
+            applications = await MobilityApplication.find().populate('institutionId', 'name country city');
         }
 
         res.json(applications);
