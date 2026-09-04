@@ -6,8 +6,22 @@ import path from 'path';
 
 const router = Router();
 
+// a Mongoose ValidationError (bad enum value, missing required subdocument
+// field, etc.) means the request was malformed, not a server failure
+function handleError(res: Response, error: unknown, fallbackMessage: string) {
+    if (error instanceof Error && error.name === 'ValidationError') {
+        return res.status(400).json({ message: error.message });
+    }
+    console.error(fallbackMessage, error);
+    return res.status(500).json({ message: fallbackMessage });
+}
+
 // POST /applications - student creates an application
 router.post('/', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can create applications' });
+    }
+
     const { institutionId, lecturerId, academicYear, mobilityPeriod } = req.body;
 
     if (!institutionId || !lecturerId || !academicYear || !mobilityPeriod) {
@@ -26,7 +40,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
         await application.save();
         res.status(201).json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error creating application' });
+        handleError(res, error, 'Error creating application');
     }
 });
 
@@ -107,7 +121,7 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
 
         res.status(201).json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error adding mappings' });
+        handleError(res, error, 'Error adding mappings');
     }
 });
 
@@ -163,7 +177,7 @@ router.post('/:id/learning-agreement',
             await application.save();
             res.status(201).json(application);
         } catch (error) {
-            res.status(500).json({ message: 'Error uploading learning agreement' });
+            handleError(res, error, 'Error uploading learning agreement');
         }
     });
 
@@ -195,6 +209,10 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
             return res.status(404).json({ message: 'Learning agreement not found' });
         }
 
+        if (learningAgreement.status !== 'pending') {
+            return res.status(400).json({ message: 'This learning agreement has already been evaluated' });
+        }
+
         learningAgreement.status = decision;
         learningAgreement.decisionDate = new Date();
         if (reason) {
@@ -204,7 +222,7 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
         await application.save();
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error evaluating learning agreement' });
+        handleError(res, error, 'Error evaluating learning agreement');
     }
 });
 
@@ -220,6 +238,12 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
             return res.status(404).json({ message: 'Application not found' });
         }
 
+        if (application.status !== 'awaiting_la_approval') {
+            return res.status(400).json({
+                message: 'Pre-departure status can only be set while awaiting Learning Agreement approval'
+            });
+        }
+
         const approvedLA = application.learningAgreements.some(la => la.status === 'approved');
         if (!approvedLA) {
             return res.status(400).json({ message: 'At least one learning agreement must be approved before updating pre-departure status' });
@@ -229,7 +253,7 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
         await application.save();
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating pre-departure status' });
+        handleError(res, error, 'Error updating pre-departure status');
     }
 });
 
@@ -242,6 +266,15 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
     const { arrivalDate, departureDate } = req.body;
     if (!arrivalDate || !departureDate) {
         return res.status(400).json({ message: 'Both arrivalDate and departureDate are required' });
+    }
+
+    const parsedArrival = new Date(arrivalDate);
+    const parsedDeparture = new Date(departureDate);
+    if (isNaN(parsedArrival.getTime()) || isNaN(parsedDeparture.getTime())) {
+        return res.status(400).json({ message: 'arrivalDate and departureDate must be valid dates' });
+    }
+    if (parsedDeparture <= parsedArrival) {
+        return res.status(400).json({ message: 'departureDate must be after arrivalDate' });
     }
 
     try {
@@ -260,14 +293,14 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
             });
         }
 
-        application.arrivalDate = new Date(arrivalDate);
-        application.departureDate = new Date(departureDate);
+        application.arrivalDate = parsedArrival;
+        application.departureDate = parsedDeparture;
         application.status = 'mobility_in_progress';
 
         await application.save();
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating dates' });
+        handleError(res, error, 'Error updating dates');
     }
 });
 
@@ -320,6 +353,12 @@ router.post('/:id/modifications',
                 return res.status(403).json({ message: 'Access denied' });
             }
 
+            if (application.status !== 'mobility_in_progress') {
+                return res.status(400).json({
+                    message: 'Modifications can only be requested while the mobility is in progress'
+                });
+            }
+
             // replacesMappingId is optional: set it to replace or remove an existing
             // active exam, leave it unset when it's a brand new exam
             if (replacesMappingId) {
@@ -347,7 +386,7 @@ router.post('/:id/modifications',
             await application.save();
             res.status(201).json(application);
         } catch (error) {
-            res.status(500).json({ message: 'Error requesting modification' });
+            handleError(res, error, 'Error requesting modification');
         }
     });
 
@@ -377,6 +416,10 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
         );
         if (!modification) {
             return res.status(404).json({ message: 'Modification not found' });
+        }
+
+        if (modification.status !== 'pending') {
+            return res.status(400).json({ message: 'This modification has already been evaluated' });
         }
 
         modification.status = decision;
@@ -411,8 +454,7 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
         await application.save();
         res.json(application);
     } catch (error) {
-        console.error('Error evaluating modification:', error);
-        res.status(500).json({ message: 'Error evaluating modification' });
+        handleError(res, error, 'Error evaluating modification');
     }
 });
 
@@ -439,6 +481,12 @@ router.post('/:id/transcript',
                 return res.status(403).json({ message: 'Access denied' });
             }
 
+            if (application.status !== 'mobility_in_progress') {
+                return res.status(400).json({
+                    message: 'A transcript can only be uploaded while the mobility is in progress'
+                });
+            }
+
             application.transcripts.push({
                 filePath: req.file.path,
                 uploadedAt: new Date()
@@ -449,7 +497,7 @@ router.post('/:id/transcript',
             await application.save();
             res.status(201).json(application);
         } catch (error) {
-            res.status(500).json({ message: 'Error uploading transcript' });
+            handleError(res, error, 'Error uploading transcript');
         }
     });
 
@@ -474,9 +522,19 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        if (application.status !== 'waiting_score_approval') {
+            return res.status(400).json({
+                message: 'Exam results can only be recorded while waiting for score approval'
+            });
+        }
+
         const mapping = application.mappings.find(m => String(m._id) === req.params.mappingId);
         if (!mapping) {
             return res.status(404).json({ message: 'Mapping not found' });
+        }
+
+        if (!mapping.isActive) {
+            return res.status(400).json({ message: 'Cannot record a result for an inactive (superseded) mapping' });
         }
 
         // result is an IExamResult object, not a string
@@ -489,7 +547,7 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
         await application.save();
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error updating mapping result' });
+        handleError(res, error, 'Error updating mapping result');
     }
 });
 
@@ -505,9 +563,15 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        const allActiveMappingsApproved = application.mappings
-            .filter(m => m.isActive)
-            .every(m => m.result?.approvalStatus === 'approved');
+        if (application.status !== 'waiting_score_approval') {
+            return res.status(400).json({
+                message: 'Only an application waiting for score approval can be closed'
+            });
+        }
+
+        const activeMappings = application.mappings.filter(m => m.isActive);
+        const allActiveMappingsApproved = activeMappings.length > 0 &&
+            activeMappings.every(m => m.result?.approvalStatus === 'approved');
 
         if (application.transcripts.length === 0 || !allActiveMappingsApproved) {
             return res.status(400).json({ message: 'Cannot close: missing transcript or not all active mappings are approved' });
@@ -517,7 +581,7 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
         await application.save();
         res.json(application);
     } catch (error) {
-        res.status(500).json({ message: 'Error closing application' });
+        handleError(res, error, 'Error closing application');
     }
 });
 

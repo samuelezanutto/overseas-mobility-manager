@@ -179,7 +179,7 @@
     }
 
     <!-- STUDENT: dates -->
-    @if (isStudent()) {
+    @if (canSetDates()) {
       <div class="card">
         <h4>Mobility dates</h4>
         <label>Arrival: <input type="date" [(ngModel)]="arrivalDate" name="ad" /></label>
@@ -206,7 +206,7 @@
       </ul>
     }
 
-    @if (isStudent()) {
+    @if (canUploadTranscript()) {
       <div class="card">
         <h4>Upload Transcript of Records</h4>
         <input type="file" (change)="onTranscriptFileSelected($event)" />
@@ -252,7 +252,7 @@
       </table>
     }
 
-    @if (isStudent()) {
+    @if (canProposeModification()) {
       <div class="card">
         <h4>Propose a change to the exam plan</h4>
 
@@ -330,11 +330,15 @@
     }
 
     <!-- STAFF -->
-    @if (isStaff()) {
+    @if (isStaff() && (canCompletePreDeparture() || canClose())) {
       <div class="card card-highlight">
         <h4>Overseas Office actions</h4>
-        <button (click)="completePreDeparture()">Complete pre-departure phase</button>
-        <button class="btn-danger ml-1" (click)="closeApp()">Close application</button>
+        @if (canCompletePreDeparture()) {
+          <button (click)="completePreDeparture()">Complete pre-departure phase</button>
+        }
+        @if (canClose()) {
+          <button class="btn-danger ml-1" (click)="closeApp()">Close application</button>
+        }
       </div>
     }
   }

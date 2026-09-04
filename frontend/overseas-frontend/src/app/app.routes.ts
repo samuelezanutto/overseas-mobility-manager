@@ -3,6 +3,7 @@ import { Login } from './pages/login/login';
 import { Register } from './pages/register/register';
 import { Dashboard } from './pages/dashboard/dashboard';
 import { authGuard } from './core/guards/auth.guard';
+import { studentGuard } from './core/guards/student.guard';
 
 export const routes: Routes = [
   { path: 'login', component: Login },
@@ -14,7 +15,7 @@ export const routes: Routes = [
   },
   {
     path: 'applications/new',
-    canActivate: [authGuard],
+    canActivate: [authGuard, studentGuard],
     loadComponent: () =>
       import('./pages/application-new/application-new').then((m) => m.ApplicationNew),
   },

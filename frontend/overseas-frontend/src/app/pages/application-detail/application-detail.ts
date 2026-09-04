@@ -80,6 +80,26 @@ export class ApplicationDetail implements OnInit {
     return agreements[agreements.length - 1].status === 'rejected';
   }
 
+  canSetDates() {
+    return this.isStudent() && this.application()?.status === 'pre_departure_completed';
+  }
+
+  canProposeModification() {
+    return this.isStudent() && this.application()?.status === 'mobility_in_progress';
+  }
+
+  canUploadTranscript() {
+    return this.isStudent() && this.application()?.status === 'mobility_in_progress';
+  }
+
+  canCompletePreDeparture() {
+    return this.isStaff() && this.application()?.status === 'awaiting_la_approval';
+  }
+
+  canClose() {
+    return this.isStaff() && this.application()?.status === 'waiting_score_approval';
+  }
+
   isStudent() {
     return this.userRole() === 'student';
   }
@@ -143,6 +163,10 @@ export class ApplicationDetail implements OnInit {
   saveDates() {
     if (!this.arrivalDate || !this.departureDate) {
       this.errorMessage.set('Enter both dates');
+      return;
+    }
+    if (new Date(this.departureDate) <= new Date(this.arrivalDate)) {
+      this.errorMessage.set('Departure date must be after the arrival date');
       return;
     }
 
