@@ -8,6 +8,15 @@ import path from 'path';
 
 const router = Router();
 
+// every route that returns a full application document populates these refs,
+// so the frontend can always render institution/lecturer/student names -
+// not just right after the initial GET, but after every action too
+const APPLICATION_POPULATE = [
+    { path: 'institutionId', select: 'name country city' },
+    { path: 'studentId', select: 'firstName lastName email matriculationNumber' },
+    { path: 'lecturerId', select: 'firstName lastName email' }
+];
+
 // a Mongoose ValidationError (bad enum value, missing required subdocument
 // field, etc.) or CastError (malformed ObjectId) means the request was
 // malformed, not a server failure
@@ -54,6 +63,7 @@ router.post('/', authMiddleware, async (req: Request, res: Response) => {
             status: 'created'
         });
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.status(201).json(application);
     } catch (error) {
         handleError(res, error, 'Error creating application');
@@ -100,6 +110,9 @@ router.get('/:id', authMiddleware, async (req: Request, res: Response) => {
             return res.status(403).json({ message: 'Access denied' });
         }
 
+        // populate only after the ownership check above, which relies on
+        // studentId/lecturerId still being raw ObjectIds
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error fetching application');
@@ -136,6 +149,7 @@ router.post('/:id/mappings', authMiddleware, async (req: Request, res: Response)
         application.mappings.push(...mappings);
         await application.save();
 
+        await application.populate(APPLICATION_POPULATE);
         res.status(201).json(application);
     } catch (error) {
         handleError(res, error, 'Error adding mappings');
@@ -208,6 +222,7 @@ router.post('/:id/learning-agreement',
             application.status = 'awaiting_la_approval';
 
             await application.save();
+            await application.populate(APPLICATION_POPULATE);
             res.status(201).json(application);
         } catch (error) {
             handleError(res, error, 'Error uploading learning agreement');
@@ -257,6 +272,7 @@ router.patch('/:id/learning-agreement/:agreementId/evaluate', authMiddleware, as
         }
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error evaluating learning agreement');
@@ -288,6 +304,7 @@ router.patch('/:id/pre-departure', authMiddleware, async (req: Request, res: Res
 
         application.status = 'pre_departure_completed';
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error updating pre-departure status');
@@ -335,6 +352,7 @@ router.patch('/:id/dates', authMiddleware, async (req: Request, res: Response) =
         application.status = 'mobility_in_progress';
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error updating dates');
@@ -407,20 +425,23 @@ router.post('/:id/modifications',
                 }
             }
 
-            application.learningAgreements.push({
+            const newLAIndex = application.learningAgreements.push({
                 filePath: req.file.path,
                 uploadedAt: new Date(),
                 status: 'pending'
-            });
+            }) - 1;
+            const newLA = application.learningAgreements[newLAIndex]!;
 
             application.modifications.push({
                 description,
                 proposedMappings: parsedMappings,
                 replacesMappingId: replacesMappingId || undefined,
+                learningAgreementId: newLA._id!,
                 status: 'pending'
             });
 
             await application.save();
+            await application.populate(APPLICATION_POPULATE);
             res.status(201).json(application);
         } catch (error) {
             handleError(res, error, 'Error requesting modification');
@@ -463,10 +484,29 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
             return res.status(400).json({ message: 'This modification has already been evaluated' });
         }
 
+        const decisionDate = new Date();
         modification.status = decision;
-        modification.decisionDate = new Date();
+        modification.decisionDate = decisionDate;
         if (reason) {
             modification.reason = reason;
+        }
+
+        // the Learning Agreement uploaded together with this modification
+        // follows the same decision: approved means it becomes the current
+        // agreement, rejected means it's discarded and the previous one
+        // (still the last "approved" entry in the array) remains in effect -
+        // this is the spec's required restore of the original mapping/LA
+        const linkedLA = modification.learningAgreementId
+            ? application.learningAgreements.find(
+                la => String(la._id) === String(modification.learningAgreementId)
+            )
+            : undefined;
+        if (linkedLA && linkedLA.status === 'pending') {
+            linkedLA.status = decision;
+            linkedLA.decisionDate = decisionDate;
+            if (reason) {
+                linkedLA.reason = reason;
+            }
         }
 
         if (decision === 'approved') {
@@ -493,6 +533,7 @@ router.patch('/:id/modifications/:modificationId/evaluate', authMiddleware, asyn
         }
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error evaluating modification');
@@ -536,16 +577,18 @@ router.post('/:id/transcript',
             application.status = 'waiting_score_approval';
 
             await application.save();
+            await application.populate(APPLICATION_POPULATE);
             res.status(201).json(application);
         } catch (error) {
             handleError(res, error, 'Error uploading transcript');
         }
     });
 
-// PATCH /applications/:id/mappings/:mappingId/result
+// PATCH /applications/:id/mappings/:mappingId/result - student records the
+// score/date obtained abroad, based on the Transcript of Records
 router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Request, res: Response) => {
-    if (req.user!.role !== 'lecturer') {
-        return res.status(403).json({ message: 'Access denied' });
+    if (req.user!.role !== 'student') {
+        return res.status(403).json({ message: 'Only students can record their exam results' });
     }
 
     const { score, examDate } = req.body;
@@ -559,7 +602,7 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
             return res.status(404).json({ message: 'Application not found' });
         }
 
-        if (application.lecturerId.toString() !== req.user!.id) {
+        if (application.studentId.toString() !== req.user!.id) {
             return res.status(403).json({ message: 'Access denied' });
         }
 
@@ -578,17 +621,74 @@ router.patch('/:id/mappings/:mappingId/result', authMiddleware, async (req: Requ
             return res.status(400).json({ message: 'Cannot record a result for an inactive (superseded) mapping' });
         }
 
-        // result is an IExamResult object, not a string
+        if (mapping.result && mapping.result.approvalStatus !== 'rejected') {
+            return res.status(400).json({ message: 'A result has already been submitted for this exam' });
+        }
+
+        // result is an IExamResult object, not a string; the lecturer still
+        // has to approve it before the application can be closed
         mapping.result = {
             score,
             examDate: new Date(examDate),
-            approvalStatus: 'approved'
+            approvalStatus: 'pending'
         };
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error updating mapping result');
+    }
+});
+
+// PATCH /applications/:id/mappings/:mappingId/result/evaluate - referent
+// lecturer reviews the Transcript of Records and approves/rejects the score
+router.patch('/:id/mappings/:mappingId/result/evaluate', authMiddleware, async (req: Request, res: Response) => {
+    if (req.user!.role !== 'lecturer') {
+        return res.status(403).json({ message: 'Only lecturers can evaluate exam results' });
+    }
+
+    const { decision } = req.body;
+    if (!['approved', 'rejected'].includes(decision)) {
+        return res.status(400).json({ message: 'Decision must be either "approved" or "rejected"' });
+    }
+
+    try {
+        const application = await MobilityApplication.findById(req.params.id);
+        if (!application) {
+            return res.status(404).json({ message: 'Application not found' });
+        }
+
+        if (application.lecturerId.toString() !== req.user!.id) {
+            return res.status(403).json({ message: 'Access denied' });
+        }
+
+        if (application.status !== 'waiting_score_approval') {
+            return res.status(400).json({
+                message: 'Exam results can only be evaluated while waiting for score approval'
+            });
+        }
+
+        const mapping = application.mappings.find(m => String(m._id) === req.params.mappingId);
+        if (!mapping) {
+            return res.status(404).json({ message: 'Mapping not found' });
+        }
+
+        if (!mapping.result) {
+            return res.status(400).json({ message: 'No result has been submitted for this exam yet' });
+        }
+
+        if (mapping.result.approvalStatus !== 'pending') {
+            return res.status(400).json({ message: 'This result has already been evaluated' });
+        }
+
+        mapping.result.approvalStatus = decision;
+
+        await application.save();
+        await application.populate(APPLICATION_POPULATE);
+        res.json(application);
+    } catch (error) {
+        handleError(res, error, 'Error evaluating mapping result');
     }
 });
 
@@ -620,6 +720,7 @@ router.patch('/:id/close', authMiddleware, async (req: Request, res: Response) =
 
         application.status = 'closed';
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error closing application');
@@ -665,6 +766,7 @@ router.post('/:id/cancellation-requests', authMiddleware, async (req: Request, r
         });
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.status(201).json(application);
     } catch (error) {
         handleError(res, error, 'Error requesting cancellation');
@@ -714,6 +816,7 @@ router.patch('/:id/cancellation-requests/:requestId/evaluate', authMiddleware, a
         }
 
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error evaluating cancellation request');
@@ -750,6 +853,7 @@ router.patch('/:id/cancel', authMiddleware, async (req: Request, res: Response) 
 
         application.status = 'canceled';
         await application.save();
+        await application.populate(APPLICATION_POPULATE);
         res.json(application);
     } catch (error) {
         handleError(res, error, 'Error canceling application');
@@ -772,12 +876,19 @@ router.get('/:id/files/:filename', authMiddleware, async (req: Request, res: Res
             return res.status(403).json({ message: 'Access denied' });
         }
 
-        const filename = req.params.filename;
-        if (typeof filename !== 'string') {
-            return res.status(400).json({ message: 'Invalid filename' });
+        // the requested filename must belong to THIS application's own
+        // uploaded documents - never trust it to resolve a path by itself,
+        // otherwise access to the application would leak every other file on
+        // the server (IDOR/path traversal)
+        const requestedName = req.params.filename;
+        const ownedFile = [...application.learningAgreements, ...application.transcripts]
+            .find(f => path.basename(f.filePath) === requestedName);
+
+        if (!ownedFile) {
+            return res.status(404).json({ message: 'File not found on this application' });
         }
 
-        const filePath = path.resolve('uploads', filename);
+        const filePath = path.resolve('uploads', path.basename(ownedFile.filePath));
         res.sendFile(filePath);
     } catch (error) {
         handleError(res, error, 'Error downloading file');

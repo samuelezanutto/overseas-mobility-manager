@@ -256,6 +256,11 @@ export class ApplicationDetail implements OnInit {
       });
   }
 
+  canSubmitResult(mapping: any) {
+    if (!this.isStudent() || this.application()?.status !== 'waiting_score_approval') return false;
+    return !mapping.result || mapping.result.approvalStatus === 'rejected';
+  }
+
   setResult(mappingId: string) {
     const score = prompt('Grade obtained (e.g. 28, 30L):');
     if (!score) return;
@@ -268,11 +273,22 @@ export class ApplicationDetail implements OnInit {
       .subscribe({
         next: (app) => {
           this.application.set(app);
-          this.successMessage.set('Grade recorded');
+          this.successMessage.set('Grade recorded, waiting for lecturer approval');
           this.errorMessage.set('');
         },
         error: (err) => this.errorMessage.set(err.error?.message ?? 'Error recording the grade'),
       });
+  }
+
+  evaluateResult(mappingId: string, decision: string) {
+    this.applicationService.evaluateExamResult(this.applicationId, mappingId, decision).subscribe({
+      next: (app) => {
+        this.application.set(app);
+        this.successMessage.set(`Grade ${decision}`);
+        this.errorMessage.set('');
+      },
+      error: (err) => this.errorMessage.set(err.error?.message ?? 'Error evaluating the grade'),
+    });
   }
 
   completePreDeparture() {

@@ -87,6 +87,13 @@ export class ApplicationService {
     });
   }
 
+  evaluateExamResult(id: string, mappingId: string, decision: string) {
+    return this.http.patch<any>(
+      `${this.apiUrl}/applications/${id}/mappings/${mappingId}/result/evaluate`,
+      { decision },
+    );
+  }
+
   closeApplication(id: string) {
     return this.http.patch<any>(`${this.apiUrl}/applications/${id}/close`, {});
   }

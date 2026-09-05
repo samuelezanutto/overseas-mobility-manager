@@ -59,6 +59,11 @@ export interface IModification {
     // active mapping this modification replaces once approved; unset means the
     // proposed mappings are added on top of the existing ones
     replacesMappingId?: Types.ObjectId;
+    // the Learning Agreement uploaded together with this modification; its
+    // fate is tied to the modification's own evaluation (see the evaluate
+    // route) so a rejection restores the previous Learning Agreement instead
+    // of leaving this one pending forever
+    learningAgreementId?: Types.ObjectId;
 }
 
 export interface ICancellationRequest {
@@ -138,7 +143,8 @@ const modificationSchema = new Schema<IModification>({
     decisionDate: { type: Date },
     reason: { type: String },
     proposedMappings: [examMappingSchema],
-    replacesMappingId: { type: Schema.Types.ObjectId }
+    replacesMappingId: { type: Schema.Types.ObjectId },
+    learningAgreementId: { type: Schema.Types.ObjectId }
 });
 
 const cancellationRequestSchema = new Schema<ICancellationRequest>({

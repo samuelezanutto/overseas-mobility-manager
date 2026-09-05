@@ -89,7 +89,7 @@ Exam mappings are never deleted. When a modification is approved, the previous m
      │  student uploads Transcript of Records
      ▼
   waiting_score_approval
-     │  lecturer records and approves each exam result
+     │  student records each exam result, lecturer approves or rejects it
      │  office closes the application
      ▼
   closed
@@ -174,7 +174,8 @@ PATCH  /applications/:id/dates                                 set mobility date
 POST   /applications/:id/modifications                         propose a change
 PATCH  /applications/:id/modifications/:modId/evaluate         approve or reject
 POST   /applications/:id/transcript                            upload transcript
-PATCH  /applications/:id/mappings/:mappingId/result            record exam result
+PATCH  /applications/:id/mappings/:mappingId/result            record exam result (student)
+PATCH  /applications/:id/mappings/:mappingId/result/evaluate   approve or reject it (lecturer)
 PATCH  /applications/:id/close                                 close application
 POST   /applications/:id/cancellation-requests                 student requests cancellation
 PATCH  /applications/:id/cancellation-requests/:reqId/evaluate office approves or rejects
@@ -216,7 +217,7 @@ overseas-app/
 
 Route guards in the frontend prevent unauthenticated users from reaching protected pages, but they are a usability measure, not a security boundary — the real enforcement is the JWT middleware on every backend route.
 
-File downloads are checked against the requesting user: only the owning student, the referent lecturer, and office staff can retrieve a document belonging to an application.
+File downloads are checked against the requesting user (only the owning student, the referent lecturer, and office staff can retrieve a document belonging to an application) **and** against the application itself: the requested filename must match one of that application's own uploaded documents, so a valid application id cannot be combined with another application's filename to read a file you don't own.
 
 The JWT secret is read from the environment, with a development default so the project runs out of the box. In production the application refuses to start without one, and the secret would be injected by the platform rather than committed.
 

@@ -17,6 +17,28 @@
 
     <table>
       <tr>
+        <td><strong>Host institution</strong></td>
+        <td>
+          {{ application().institutionId?.name }} &mdash;
+          {{ application().institutionId?.city }}, {{ application().institutionId?.country }}
+        </td>
+      </tr>
+      <tr>
+        <td><strong>Referent lecturer</strong></td>
+        <td>{{ application().lecturerId?.firstName }} {{ application().lecturerId?.lastName }}</td>
+      </tr>
+      @if (!isStudent()) {
+        <tr>
+          <td><strong>Student</strong></td>
+          <td>
+            {{ application().studentId?.firstName }} {{ application().studentId?.lastName }}
+            @if (application().studentId?.matriculationNumber) {
+              ({{ application().studentId?.matriculationNumber }})
+            }
+          </td>
+        </tr>
+      }
+      <tr>
         <td><strong>Academic year</strong></td>
         <td>{{ application().academicYear }}</td>
       </tr>
@@ -59,7 +81,7 @@
             <th>CF course</th>
             <th>Credits</th>
             <th>Grade</th>
-            @if (isLecturer()) {
+            @if (isStudent() || isLecturer()) {
               <th>Actions</th>
             }
           </tr>
@@ -87,10 +109,16 @@
                   -
                 }
               </td>
-              @if (isLecturer()) {
+              @if (isStudent() || isLecturer()) {
                 <td>
-                  @if (!m.result) {
-                    <button (click)="setResult(m._id)">Record grade</button>
+                  @if (isStudent() && canSubmitResult(m)) {
+                    <button (click)="setResult(m._id)">Submit grade</button>
+                  }
+                  @if (isLecturer() && m.result?.approvalStatus === 'pending') {
+                    <button (click)="evaluateResult(m._id, 'approved')">Approve</button>
+                    <button class="btn-danger" (click)="evaluateResult(m._id, 'rejected')">
+                      Reject
+                    </button>
                   }
                 </td>
               }

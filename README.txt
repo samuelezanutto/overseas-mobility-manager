@@ -151,9 +151,11 @@ sulla stessa domanda.
 
   6.  Studente
       - caricare un file PDF qualsiasi come Transcript of Records
+      - inserire voto e data per ciascun esame sostenuto all'estero
 
   7.  Docente referente
-      - registrare voto e data per ciascun esame sostenuto all'estero
+      - approvare (o rifiutare) il voto inserito dallo studente per
+        ciascun esame
 
   8.  Ufficio Overseas
       - chiudere la domanda
