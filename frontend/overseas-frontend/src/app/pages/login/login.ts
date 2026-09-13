@@ -23,7 +23,12 @@ export class Login {
   onSubmit() {
     this.authService.login(this.email, this.password).subscribe({
       next: () => this.router.navigate(['/dashboard']),
-      error: () => this.errorMessage.set('Incorrect email or password'),
+      // err.error.message carries the backend's actual reason (e.g. "Invalid
+      // credentials"); a request that never reached the backend (server
+      // still starting up, network down) has no such message and must not
+      // be reported as a wrong password
+      error: (err) =>
+        this.errorMessage.set(err?.error?.message || 'Unable to reach the server, please try again'),
     });
   }
 }
