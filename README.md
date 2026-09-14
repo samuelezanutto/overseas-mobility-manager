@@ -1,8 +1,16 @@
 # Overseas Mobility Manager
 
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
+![Angular](https://img.shields.io/badge/Angular-standalone%20%2B%20signals-DD0031?logo=angular&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose-47A248?logo=mongodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker&logoColor=white)
+
 Web application for managing international student mobility programs — from application submission through document approval to final exam recognition.
 
-Built as the exam project for *Tecnologie e Applicazioni Web*, Ca' Foscari University of Venice, a.y. 2025/2026.
+Built as the exam project for *Tecnologie e Applicazioni Web*, Ca' Foscari University of Venice, a.y. 2025/2026 — graded **30 cum laude**.
+
+**Contents:** [Overview](#overview) · [Screenshots](#screenshots) · [Tech Stack](#tech-stack) · [Architecture](#architecture) · [Data Model](#data-model) · [Application Workflow](#application-workflow) · [Running the Application](#running-the-application) · [Test Data](#test-data) · [API](#api) · [Project Structure](#project-structure) · [Notes on Security](#notes-on-security)
 
 ---
 
@@ -17,6 +25,21 @@ The Overseas program allows students to spend a period at a partner university a
 **Overseas Office staff** monitor all applications, mark the pre-departure phase complete, and close applications at the end of the process. Their dashboard also breaks applications down by status, country, and host institution, with click-to-filter counters.
 
 Each role sees a different view of the same application, with actions gated by both role and ownership.
+
+---
+
+## Screenshots
+
+| | |
+|---|---|
+| **Login** | **Office dashboard** — status overview + country/institution filters |
+| ![Login](docs/screenshots/login.png) | ![Office dashboard](docs/screenshots/dashboard-office.png) |
+| **Student dashboard** | **New application form** |
+| ![Student dashboard](docs/screenshots/dashboard-student.png) | ![New application](docs/screenshots/application-new.png) |
+| **Lecturer view** — approve/reject a Learning Agreement | **Office view** — application in progress, cancellation control |
+| ![Lecturer view](docs/screenshots/application-detail-lecturer.png) | ![Office application detail](docs/screenshots/application-detail-office.png) |
+| **Student view** — exam mappings, transcript, grade submission | |
+| ![Student application detail](docs/screenshots/application-detail-student.png) | |
 
 ---
 
